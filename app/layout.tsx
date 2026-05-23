@@ -21,6 +21,7 @@ const cormorant = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   title: "yawp",
+  description: "A thinking surface.",
 };
 
 export default function RootLayout({
