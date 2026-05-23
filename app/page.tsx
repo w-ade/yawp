@@ -1,9 +1,16 @@
+import Image from "next/image";
+
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white flex items-center justify-center px-6 font-serif">
-      <p className="max-w-md text-base leading-relaxed text-neutral-900 text-left">
-        <span className="font-bold">yawp</span> — an open-source, light-mode canvas for thinking. Collect, sketch, connect ideas — then summon AI coding agents right onto the canvas through embedded terminal nodes. A forkable, MIT-licensed desktop app. The canvas that can also do.
-      </p>
+    <main className="min-h-screen bg-[#f5f5f5] flex items-center justify-center px-6">
+      <Image
+        src="/yawp word.svg"
+        alt="yawp"
+        width={2000}
+        height={800}
+        priority
+        className="w-full max-w-[90vw] h-auto"
+      />
     </main>
   );
 }
