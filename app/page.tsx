@@ -6,7 +6,7 @@ import LiquidLetter from "@/components/liquid-letter";
 export default function Home() {
   return (
     <main
-      className="min-h-dvh flex flex-col items-center px-6 pt-[6vh]"
+      className="min-h-dvh flex flex-col items-center justify-center px-6"
       style={{ background: "#F3F3F3" }}
     >
       <div className="flex w-[300px] flex-col items-start">
@@ -16,7 +16,7 @@ export default function Home() {
             A surface to think on, a canvas to build from.
           </p>
         </div>
-        <p className="mt-5 text-left text-[12px] leading-relaxed text-muted-foreground">
+        <p className="mt-8 text-left text-[13px] leading-relaxed text-muted-foreground">
           yawp is an{" "}
           <a
             href="https://github.com/wwwwaaaaddddeeee/yawp"
@@ -30,7 +30,7 @@ export default function Home() {
           gather inspiration, take notes, sketch, and think out loud.
         </p>
       </div>
-      <footer className="mt-auto py-4 text-[10px] text-muted-foreground">
+      <footer className="absolute bottom-0 py-4 text-[10px] text-muted-foreground">
         by @
         <a
           href="https://www.wa-de.org/"
