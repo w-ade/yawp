@@ -14,11 +14,30 @@ export default function Home() {
           </p>
         </div>
         <p className="mt-[calc(25vh-48px)] text-left text-[12px] leading-relaxed text-muted-foreground">
-          yawp is an open source infinite canvas workspace for project
-          brainstorming and ideation – gather inspiration, take notes, sketch,
-          and think out loud. Build from what you made.
+          yawp is an{" "}
+          <a
+            href="https://github.com/wwwwaaaaddddeeee/yawp"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline transition-colors hover:text-foreground"
+          >
+            open source
+          </a>{" "}
+          infinite canvas workspace for project brainstorming and ideation –
+          gather inspiration, take notes, sketch, and think out loud.
         </p>
       </div>
+      <footer className="mt-auto py-4 text-[10px] text-muted-foreground">
+        by @
+        <a
+          href="https://www.wa-de.org/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline transition-colors hover:text-foreground"
+        >
+          wa-de
+        </a>
+      </footer>
     </main>
   );
 }
