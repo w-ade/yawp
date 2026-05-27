@@ -1,9 +1,10 @@
 import LiquidLetter from "@/components/liquid-letter";
+import Roadmap from "@/components/roadmap";
 
 export default function Home() {
   return (
     <main
-      className="min-h-screen flex flex-col items-center px-6 pt-[calc(25vh-31px)]"
+      className="min-h-screen flex flex-col items-center px-6 pt-[8vh]"
       style={{ background: "#F3F3F3" }}
     >
       <div className="flex w-[300px] flex-col items-start">
@@ -13,7 +14,7 @@ export default function Home() {
             A surface to think on, a canvas to build from.
           </p>
         </div>
-        <p className="mt-[calc(25vh-48px)] text-left text-[12px] leading-relaxed text-muted-foreground">
+        <p className="mt-8 text-left text-[12px] leading-relaxed text-muted-foreground">
           yawp is an{" "}
           <a
             href="https://github.com/wwwwaaaaddddeeee/yawp"
@@ -26,6 +27,8 @@ export default function Home() {
           infinite canvas workspace for project brainstorming and ideation –
           gather inspiration, take notes, sketch, and think out loud.
         </p>
+
+        <Roadmap />
       </div>
       <footer className="mt-auto py-4 text-[10px] text-muted-foreground">
         by @
