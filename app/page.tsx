@@ -1,5 +1,7 @@
 import LiquidLetter from "@/components/liquid-letter";
-import Roadmap from "@/components/roadmap";
+// Roadmap tabs are parked for now — re-add <Roadmap /> below the description
+// to bring them back. Component lives in components/roadmap.tsx.
+// import Roadmap from "@/components/roadmap";
 
 export default function Home() {
   return (
@@ -27,8 +29,6 @@ export default function Home() {
           infinite canvas workspace for project brainstorming and ideation –
           gather inspiration, take notes, sketch, and think out loud.
         </p>
-
-        <Roadmap />
       </div>
       <footer className="mt-auto py-4 text-[10px] text-muted-foreground">
         by @
