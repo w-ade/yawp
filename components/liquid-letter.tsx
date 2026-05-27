@@ -1,51 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { animate } from "motion";
 import { useDialKit } from "dialkit";
 
 /**
- * Liquid letter — recreation of https://liquid-letter.vercel.app/
+ * Liquid letter — faithful port of https://liquid-letter.vercel.app/
  *
- * Technique (not a gooey SVG filter): the glyph is used as a CSS mask over an
- * iridescent gradient, blurred into a liquid body, then CSS hue-rotate / invert /
- * contrast / mix-blend-difference produce the metallic colour. A blurred white
- * stroke of the same glyph adds the highlight edge; a turbulence layer adds grain.
+ * The metallic iridescence is a mix-blend-difference between two layers that
+ * share one gradient (`--letter-gradient`) but slide it in opposite directions:
+ *   • the container paints the gradient as its own background (the "backdrop"
+ *     that difference blends against), sliding top→bottom over 4s;
+ *   • a blurred copy of the gradient is masked to the glyph and slides
+ *     bottom→top, so the two never line up and the colour keeps shifting.
+ * Static hue-rotate / invert / contrast filters set the palette; a blurred
+ * white stroke adds the highlight edge and an feTurbulence layer adds grain.
  * Every parameter below is exposed through the "Liquid letter" dial.
  */
+const GRADIENT =
+  "linear-gradient(to top, #fff 0%, #67aeff 20%, #144bff 40%, #203ed6 60%, #fff 100%)";
+
 export default function LiquidLetter() {
   const v = useDialKit("Liquid letter", {
     letter: { type: "text", default: "yawp" },
-    width: [500, 100, 1200, 10],
-    height: [240, 80, 800, 10],
+    width: [300, 100, 1200, 10],
+    height: [125, 80, 800, 10],
     BG: { type: "color", default: "#4a74f1" },
     Y_offset: [0, -200, 200, 1],
-    fontSize: [150, 10, 400, 1],
-    maskPad: [30, 0, 200, 1],
+    fontSize: [75, 10, 400, 1],
+    maskPad: [15, 0, 200, 1],
     fontWeight: [500, 100, 900, 100],
-    borderRadius: [200, 0, 400, 1],
+    borderRadius: [100, 0, 400, 1],
     hueRotate_01: [540, 0, 720, 1],
     hueRotate_02: [260, 0, 720, 1],
     noise: [0.2, 0, 1, 0.01],
-    blur_01: [12, 0, 40, 0.1],
-    blur_02: [4.2, 0, 40, 0.1],
-    innerShadow: [30, 0, 100, 1],
-    innerShadowSpread: [15, 0, 100, 1],
+    blur_01: [6, 0, 40, 0.1],
+    blur_02: [2.1, 0, 40, 0.1],
+    innerShadow: [15, 0, 100, 1],
+    innerShadowSpread: [7.5, 0, 100, 1],
     innerShadowColor: { type: "color", default: "#f4ee43" },
   });
-
-  // Psychedelic hue cycle — sweeps the whole colour wheel over ~9s, added on
-  // top of the dial's base hue-rotate values (blue → pink → green rim → …).
-  const [hueShift, setHueShift] = useState(0);
-  useEffect(() => {
-    const controls = animate(0, 360, {
-      duration: 9,
-      repeat: Infinity,
-      ease: "linear",
-      onUpdate: setHueShift,
-    });
-    return () => controls.stop();
-  }, []);
 
   const W = v.width;
   const H = v.height;
@@ -84,20 +76,34 @@ export default function LiquidLetter() {
         borderRadius: v.borderRadius,
         background: v.BG,
         boxShadow: `${v.innerShadowColor} 0px 0px ${v.innerShadow}px ${v.innerShadowSpread}px inset`,
-        filter: `hue-rotate(${v.hueRotate_01 + hueShift}deg) invert(1)`,
+        filter: `hue-rotate(${v.hueRotate_01}deg) invert(1)`,
         backdropFilter: "blur(1px)",
         position: "relative",
         overflow: "hidden",
         isolation: "isolate",
       }}
     >
+      {/* gradient-slide keyframes (counter-running) */}
+      <style>{`
+        @keyframes ll-grad-down { 0% { background-position: 50% -100%; } 100% { background-position: 50% 100%; } }
+        @keyframes ll-grad-up   { 0% { background-position: 50% 100%; } 100% { background-position: 50% -100%; } }
+      `}</style>
+
       <div
         style={{
           width: W,
           height: H,
           position: "relative",
+          // the gradient backdrop that `difference` blends against
+          background: GRADIENT,
+          backgroundSize: "200% 200%",
+          animation: "ll-grad-down 4s linear infinite",
           mixBlendMode: "difference",
-          filter: `hue-rotate(${v.hueRotate_02 + hueShift}deg) contrast(1.2) saturate(1) invert(1)`,
+          filter: `hue-rotate(${v.hueRotate_02}deg) contrast(1.2) saturate(1) invert(1)`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
         }}
       >
         {/* defs: blurred-glyph mask + grain filter */}
@@ -112,7 +118,7 @@ export default function LiquidLetter() {
             <filter id="ll-noise" x="0" y="0" width="100%" height="100%">
               <feTurbulence
                 type="fractalNoise"
-                baseFrequency={0.9}
+                baseFrequency={2.7}
                 numOctaves={3}
                 seed={9}
                 stitchTiles="stitch"
@@ -134,17 +140,21 @@ export default function LiquidLetter() {
           </defs>
         </svg>
 
-        {/* liquid body: iridescent gradient masked to the glyph, then blurred soft */}
+        {/* liquid body: the same gradient, masked to the glyph, blurred soft,
+            sliding the opposite direction to the backdrop */}
         <div
           style={{
             ...fill,
-            background:
-              "linear-gradient(to top, #ffffff 0%, #67aeff 20%, #144bff 40%, #203ed6 60%, #ffffff 100%)",
+            zIndex: 2,
+            background: GRADIENT,
+            backgroundSize: "200% 200%",
+            animation: "ll-grad-up 4s linear infinite",
             WebkitMaskImage: "url(#ll-glyph)",
             maskImage: "url(#ll-glyph)",
             WebkitMaskSize: "100% 100%",
             maskSize: "100% 100%",
             maskRepeat: "no-repeat",
+            maskPosition: "50%",
             filter: "blur(40px)",
           }}
         />
@@ -153,7 +163,6 @@ export default function LiquidLetter() {
         <div
           style={{
             ...fill,
-            borderRadius: v.borderRadius,
             background: "rgba(73, 73, 235, 0.05)",
             boxShadow: "#ffffff 0px 0px 20px 2px inset",
           }}
