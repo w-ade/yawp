@@ -1,21 +1,20 @@
-import Image from "next/image";
-
 export default function Home() {
   return (
     <main
-      className="min-h-screen flex items-center justify-center px-6 bg-cover bg-center bg-no-repeat"
-      style={{
-        backgroundImage: "url('/og/gradientor.png')",
-      }}
+      className="min-h-screen flex items-center justify-center px-6"
+      style={{ background: "#F3F3F3" }}
     >
-      <Image
-        src="/icons/yawp.svg"
-        alt="yawp"
-        width={2000}
-        height={800}
-        priority
-        className="w-full max-w-[90vw] h-auto"
-      />
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="w-full max-w-[320px] h-auto"
+        aria-label="yawp psychedelic pill"
+      >
+        <source src="/video/yawp-psych-pill.webm" type="video/webm" />
+        <source src="/video/yawp-psych-pill.mp4" type="video/mp4" />
+      </video>
     </main>
   );
 }
