@@ -2,14 +2,20 @@ export default function Home() {
   return (
     <main
       className="min-h-dvh flex flex-col items-center justify-center px-6"
-      style={{ background: "#F3F3F3" }}
+      style={{ background: "var(--page)" }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {/* eslint-disable @next/next/no-img-element */}
       <img
         src="/yawp.svg"
         alt="yawp"
-        className="h-auto w-[360px] max-w-[80vw]"
+        className="wordmark-light h-auto w-[360px] max-w-[80vw]"
       />
+      <img
+        src="/yawpE9E9E9.svg"
+        alt="yawp"
+        className="wordmark-dark h-auto w-[360px] max-w-[80vw]"
+      />
+      {/* eslint-enable @next/next/no-img-element */}
       <footer className="absolute bottom-0 py-4 text-[10px] text-muted-foreground">
         by @
         <a
