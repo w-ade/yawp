@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yawp calendar face — 5 directions</title>
+<style>
+  @font-face {
+    font-family: "Inter";
+    src: url("https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5/files/inter-latin-wght-normal.woff2") format("woff2");
+    font-weight: 100 900; font-style: normal; font-display: swap;
+  }
+  :root {
+    --ink: #18181B; --ink-2: #52525B; --line: #E4E4E7; --line-2: #F1F1F3;
+    --violet: #7C3AED; --bg: #FFFFFF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    font-family: "Inter", sans-serif; font-size: 14px; font-weight: 400;
+    line-height: 1.6; color: var(--ink); background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 880px; padding: 72px 56px 160px; margin: 0 auto; }
+  .masthead { margin-bottom: 6px; }
+  .desc { color: var(--ink-2); }
+
+  .variation { padding: 56px 0 8px; border-top: 1px solid var(--line); margin-top: 52px; }
+  .variation:first-of-type { border-top: none; margin-top: 36px; }
+  .vlabel { color: var(--ink-2); margin-bottom: 28px; }
+
+  .cal-title { margin-bottom: 14px; }
+  .dow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 8px; }
+  .dow span { color: var(--ink-2); font-size: 12px; letter-spacing: .03em; }
+
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cell {
+    position: relative; aspect-ratio: 1 / 0.82; border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px; cursor: pointer; background: var(--bg);
+    transition: border-color .12s ease, transform .12s ease;
+  }
+  .cell:hover { border-color: var(--ink-2); }
+  .cell .d { font-size: 12px; color: var(--ink-2); position: relative; z-index: 2; }
+  .cell.empty { cursor: default; }
+  .cell.today { border-color: var(--violet); }
+  .cell.today .d { color: var(--violet); }
+
+  /* tooltip */
+  .tip {
+    position: absolute; z-index: 9; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%) translateY(4px);
+    background: var(--ink); color: #fff; padding: 6px 9px; font-size: 12px; line-height: 1.45;
+    border-radius: 5px; white-space: nowrap; opacity: 0; visibility: hidden; transition: .14s ease; pointer-events: none;
+  }
+  .cell:hover .tip { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+
+  /* V2 meter */
+  .meter { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 4px; background: var(--line-2); border-radius: 2px; overflow: hidden; }
+  .meter > i { display: block; height: 100%; background: var(--ink); }
+  .cell.today .meter > i { background: var(--violet); }
+
+  /* V3 week strip */
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  .wcell { border: 1px solid var(--line); border-radius: 10px; padding: 12px 12px 14px; min-height: 188px; position: relative; cursor: pointer; transition: border-color .12s ease; }
+  .wcell:hover { border-color: var(--ink-2); }
+  .wcell .wd { color: var(--ink-2); font-size: 12px; }
+  .wcell .wn { font-size: 13px; margin-top: 2px; }
+  .wcell .cnt { color: var(--ink-2); font-size: 12px; margin: 10px 0 8px; }
+  .wcell .stack { display: flex; flex-direction: column; gap: 4px; }
+  .wcell .stack i { height: 8px; background: var(--line); border-radius: 2px; display: block; }
+  .wcell.today { border-color: var(--violet); }
+  .wcell.today .wn, .wcell.today .cnt { color: var(--violet); }
+  .wcell.today .stack i { background: #DDD0F7; }
+
+  /* V4 continuous */
+  .scrollwrap { max-height: 320px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; }
+  .wkrow { display: grid; grid-template-columns: 86px 1fr; gap: 0; border-top: 1px solid var(--line-2); }
+  .wkrow:first-child { border-top: none; }
+  .wklab { color: var(--ink-2); font-size: 12px; padding: 14px 12px; }
+  .wkdays { display: grid; grid-template-columns: repeat(7, 1fr); }
+  .wkday { position: relative; border-left: 1px solid var(--line-2); padding: 12px 8px; min-height: 52px; cursor: pointer; }
+  .wkday .d { font-size: 12px; color: var(--ink-2); position: relative; z-index: 2; }
+  .wkday.today .d { color: var(--violet); font-weight: 600; }
+
+  /* V5 typographic */
+  .tgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .tcell { aspect-ratio: 1 / 0.82; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; border-radius: 8px; transition: background .12s ease; }
+  .tcell:hover { background: var(--line-2); }
+  .tcell .num { color: var(--ink); line-height: 1; }
+  .tcell.today .num { color: var(--violet); font-weight: 700; }
+  .tcell.empty { cursor: default; }
+
+  @media (max-width: 760px) { .page { padding: 48px 20px 120px; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="masthead">yawp calendar face — five directions</div>
+  <div class="desc">Hybrid: a weekday-style grid with day volume baked in. June 2026, today = the 22nd (violet). Hover a day.</div>
+
+  <section class="variation">
+    <div class="vlabel">01 · Fill shade — heat as the cell's background value (weekday-minimal)</div>
+    <div class="cal-title">June 2026</div>
+    <div class="dow"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+    <div class="grid" id="v1"></div>
+  </section>
+
+  <section class="variation">
+    <div class="vlabel">02 · Meter bar — cell stays white, volume is a bar at the foot (data-viz read)</div>
+    <div class="cal-title">June 2026</div>
+    <div class="dow"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+    <div class="grid" id="v2"></div>
+  </section>
+
+  <section class="variation">
+    <div class="vlabel">03 · Week view — current week, taller cells, item count + stacked previews</div>
+    <div class="cal-title">Jun 22 – 28, 2026</div>
+    <div class="week" id="v3"></div>
+  </section>
+
+  <section class="variation">
+    <div class="vlabel">04 · Continuous scroll — weeks stacked, no month paging, agenda-like</div>
+    <div class="cal-title">2026</div>
+    <div class="scrollwrap" id="v4"></div>
+  </section>
+
+  <section class="variation">
+    <div class="vlabel">05 · Typographic — no fills; the date number's weight scales with volume</div>
+    <div class="cal-title">June 2026</div>
+    <div class="dow"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+    <div class="tgrid" id="v5"></div>
+  </section>
+
+</div>
+
+<script>
+  const counts = {1:2,2:5,3:8,4:11,5:4,6:0,7:0,8:3,9:9,10:12,11:6,12:7,13:1,14:0,
+    15:5,16:8,17:10,18:4,19:6,20:0,21:1,22:6,23:0,24:0,25:0,26:0,27:0,28:0,29:0,30:0};
+  const TODAY = 22, DAYS = 30, MAX = 12;
+  const r = d => (counts[d]||0) / MAX;
+  const tipText = d => (counts[d] ? counts[d] + (counts[d]===1?' item':' items') : 'empty') + ' · Jun ' + d;
+
+  // V1 fill shade
+  let h = '';
+  for (let d=1; d<=DAYS; d++) {
+    const ratio = r(d), dark = ratio > 0.55;
+    const bg = `rgba(24,24,27,${(ratio*0.9).toFixed(3)})`;
+    h += `<div class="cell${d===TODAY?' today':''}" style="background:${bg}">
+      <span class="d" style="${dark?'color:#fff;':''}">${d}</span>
+      <span class="tip">${tipText(d)}</span></div>`;
+  }
+  document.getElementById('v1').innerHTML = h;
+
+  // V2 meter
+  h = '';
+  for (let d=1; d<=DAYS; d++) {
+    h += `<div class="cell${d===TODAY?' today':''}">
+      <span class="d">${d}</span>
+      <span class="meter"><i style="width:${(r(d)*100).toFixed(0)}%"></i></span>
+      <span class="tip">${tipText(d)}</span></div>`;
+  }
+  document.getElementById('v2').innerHTML = h;
+
+  // V3 week view (Jun 22-28)
+  const wd = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  h = '';
+  for (let i=0; i<7; i++) {
+    const d = 22 + i, c = counts[d]||0;
+    let bars = '';
+    for (let k=0; k<Math.min(c,6); k++) bars += `<i style="width:${40+((k*23)%55)}%"></i>`;
+    h += `<div class="wcell${d===TODAY?' today':''}">
+      <div class="wd">${wd[i]}</div><div class="wn">Jun ${d}</div>
+      <div class="cnt">${c?c+' items':'empty'}</div>
+      <div class="stack">${bars}</div></div>`;
+  }
+  document.getElementById('v3').innerHTML = h;
+
+  // V4 continuous (weeks of June, Mon start; Jun 1 = Monday)
+  const weeks = [[1,7],[8,14],[15,21],[22,28],[29,30]];
+  h = '';
+  weeks.forEach(([a,b]) => {
+    let days = '';
+    for (let d=a; d<=b; d++) {
+      const ratio = r(d), dark = ratio>0.55;
+      days += `<div class="wkday${d===TODAY?' today':''}" style="background:rgba(24,24,27,${(ratio*0.9).toFixed(3)})">
+        <span class="d" style="${dark?'color:#fff;':''}">${d}</span></div>`;
+    }
+    // pad last partial week
+    for (let p=b-a+1; p<7; p++) days += `<div class="wkday" style="background:#FAFAFA"></div>`;
+    h += `<div class="wkrow"><div class="wklab">Jun ${a}–${b<=30?b:30}</div><div class="wkdays">${days}</div></div>`;
+  });
+  document.getElementById('v4').innerHTML = h;
+
+  // V5 typographic — weight + size scale with volume
+  h = '';
+  for (let d=1; d<=DAYS; d++) {
+    const ratio = r(d);
+    const wt = Math.round(300 + ratio*500);   // 300..800
+    const sz = (13 + ratio*13).toFixed(0);     // 13..26px
+    const op = (0.35 + ratio*0.65).toFixed(2);
+    h += `<div class="tcell${d===TODAY?' today':''}">
+      <span class="num" style="font-weight:${wt};font-size:${sz}px;opacity:${d===TODAY?1:op}">${d}</span>
+      <span class="tip">${tipText(d)}</span></div>`;
+  }
+  document.getElementById('v5').innerHTML = h;
+</script>
+</body>
+</html>

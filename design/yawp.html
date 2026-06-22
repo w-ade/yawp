@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yawp — project document</title>
+<style>
+  @font-face {
+    font-family: "Inter";
+    src: url("fonts/Inter.woff2") format("woff2"),
+         url("https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5/files/inter-latin-wght-normal.woff2") format("woff2");
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+  @page { size: A4; margin: 24mm; }
+  :root { --ink: #18181B; --ink-2: #52525B; --bg: #FFFFFF; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    font-family: "Inter", sans-serif; font-size: 14px; font-weight: 400;
+    line-height: 1.6; color: var(--ink); background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  .doc { max-width: 900px; padding: 96px 64px 160px; }
+  .row { display: grid; grid-template-columns: 132px 1fr; gap: 24px; padding: 18px 0; }
+  .srow { display: grid; grid-template-columns: 132px 1fr 210px; gap: 24px; padding: 18px 0; }
+  .gap-s { height: 24px; } .gap-m { height: 64px; } .gap-l { height: 110px; }
+  ul { list-style: none; padding-left: 0; }
+  li { padding: 4px 0; }
+  code { font-family: "Inter", sans-serif; color: var(--ink-2); }
+  .desc { color: var(--ink-2); }
+  .step { color: var(--ink-2); }
+
+  .sechead { border-top: 1px solid var(--ink); padding-top: 12px; color: var(--ink); }
+  .sechead .d { color: var(--ink-2); }
+
+  .sub { display: block; color: var(--ink-2); margin-bottom: 4px; }
+  ul + .sub { margin-top: 20px; }
+  .subnote { list-style: none; padding-left: 1.2em; margin: 1px 0 6px; }
+  .subnote > li { position: relative; color: var(--ink-2); padding: 1px 0; }
+  .subnote > li::before { content: "\2013"; position: absolute; left: -1.0em; }
+
+  .tree ul { list-style: none; padding-left: 20px; }
+  .tree li { position: relative; padding-left: 18px; }
+  .tree li::before { content: ""; position: absolute; left: 0; top: 0.78em; width: 12px; border-top: 1px solid var(--ink); }
+  .tree li::after { content: ""; position: absolute; left: 0; top: 0; height: 100%; border-left: 1px solid var(--ink); }
+  .tree li:last-child::after { height: 0.78em; }
+  .tree > li { padding-left: 0; }
+  .tree > li::before, .tree > li::after { display: none; }
+  .gloss { margin-left: 1.5em; color: var(--ink-2); }
+
+  .yawp { color: var(--ink-2); border-left: 1px solid #ECECEE; padding-left: 20px; }
+  .yawp .lbl { display: block; color: var(--ink); margin-bottom: 6px; }
+  .yawp ul { margin: 0; } .yawp li { padding: 2px 0; }
+  .colhead { color: var(--ink-2); }
+
+  /* palette — the one section that shows real color (documenting it requires it) */
+  .pal { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 36px; margin-bottom: 8px; }
+  .swat { display: grid; grid-template-columns: 20px 20px 1fr; gap: 8px; align-items: center; }
+  .swat .c { width: 20px; height: 20px; border-radius: 5px; }
+  .swat .nm { color: var(--ink); }
+  .swat .hx { color: var(--ink-2); font-size: 13px; }
+  @media (max-width: 760px) { .pal { grid-template-columns: 1fr; } }
+
+  @media (max-width: 760px) {
+    .doc { padding: 64px 28px 120px; }
+    .row, .srow { grid-template-columns: 1fr; gap: 6px; }
+    .yawp { border-left: none; padding-left: 0; border-top: 1px solid #ECECEE; padding-top: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <div class="row">
+    <div class="label">yawp</div>
+    <div class="value">Spatial file browser. Your filesystem, dated, and seen.</div>
+  </div>
+  <div class="row">
+    <div class="label"></div>
+    <div class="value desc">Project document — overview, decisions, structure, roadmap, components, shipping.</div>
+  </div>
+
+  <!-- ============ OVERVIEW ============ -->
+  <div class="gap-l"></div>
+  <div class="sechead">Overview</div>
+  <div class="gap-s"></div>
+
+  <div class="row">
+    <div class="label">Thesis</div>
+    <div class="value">A day is a folder. A folder is a canvas. An agent lives inside it and makes the whole archive findable. The filesystem is the truth; yawp is the face on top of it.</div>
+  </div>
+  <div class="row">
+    <div class="label">Origin</div>
+    <div class="value">Capture into dated desktop folders already works: make a folder named today, throw in every screenshot, download, note, and scrap, decide nothing. The wall is retrieval — a screenshot from three weeks ago is not keyword-searchable. yawp keeps the capture habit and solves the retrieval.</div>
+  </div>
+
+  <!-- ============ DECISIONS ============ -->
+  <div class="gap-l"></div>
+  <div class="sechead">Decisions <span class="d">— locked</span></div>
+  <div class="gap-s"></div>
+
+  <div class="row">
+    <div class="label">Decisions</div>
+    <div class="value">
+      <span class="sub">Identity</span>
+      <ul><li>This is yawp — the date-indexed canvas plus retrieval agent is the job it was missing.</li></ul>
+
+      <span class="sub">Unit</span>
+      <ul><li>Discrete days. One canvas per day; the calendar is the hallway, each day a room. Lightweight traversal to adjacent days; calendar stays home base.</li></ul>
+
+      <span class="sub">Source of truth</span>
+      <ul>
+        <li>Finder is the truth. The app is a lens over real dated folders. The Finder drop and the app drop are the same action.</li>
+        <li>Creating subfolders from inside the app is a requirement.</li>
+        <li>Dedicated root at <code>~/yawp</code>, plus a one-time importer for existing dated desktop folders.</li>
+      </ul>
+
+      <span class="sub">Content layer</span>
+      <ul>
+        <li>Content is real files (image, .md note, .md/.webloc link, pdf, junk).</li>
+        <li>Furniture is canvas-native, sidecar-only: arrows, ink, frames, labels, and the agent's annotations.</li>
+        <li>A subfolder renders as a frame on the day's canvas in place, and double-clicks to open as its own canvas.</li>
+      </ul>
+
+      <span class="sub">Calendar face</span>
+      <ul>
+        <li>Hybrid weekday-style grid with heat baked into the cells (revised from a pure GitHub heatmap). Click a cell opens the day; hover previews it.</li>
+        <li>Chosen day view: continuous scroll — one stream of weeks, anchored on today. A month-grid view exists alongside it.</li>
+      </ul>
+
+      <span class="sub">Agent</span>
+      <ul>
+        <li>Embedded Claude Code in a real terminal, rooted at the yawp folder. Terminal first, pretty panel skin later. Terminal-first needs no API key.</li>
+        <li>Indexing and tagging run silently and automatically. Moving and reorganizing run propose-then-approve, never silent.</li>
+      </ul>
+
+      <span class="sub">Retrieval</span>
+      <ul>
+        <li>The moat is an agent-built index: read every file, vision-describe images, write descriptions and tags.</li>
+        <li>Two landings: teleport to a day and spotlight, or gather a thread across time into an ephemeral board.</li>
+      </ul>
+
+      <span class="sub">Card colors</span>
+      <ul>
+        <li>Six hues + neutral, each a triad (accent / fill / title / body) plus a vivid base + deep tonal. Light and dark. Hue is metadata in the sidecar. Violet reserved as identity / current.</li>
+      </ul>
+
+      <span class="sub">Stack</span>
+      <ul>
+        <li>Electron + Vite + React (Crisp's stack). Canvas engine: tldraw (furniture + custom FileCard shapes + store persistence).</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ STRUCTURE ============ -->
+  <div class="gap-l"></div>
+  <div class="sechead">Structure <span class="d">— on disk</span></div>
+  <div class="gap-s"></div>
+
+  <div class="row">
+    <div class="label">On disk</div>
+    <div class="value tree">
+      <ul>
+        <li>~/yawp
+          <ul>
+            <li>2026-06-22<span class="gloss">a day = a folder = a canvas</span>
+              <ul>
+                <li>note.md<span class="gloss">content — a real file</span></li>
+                <li>shot.png<span class="gloss">content — a real file</span></li>
+                <li>link.md<span class="gloss">content — url + agent-fetched preview</span></li>
+                <li>grizzlies-stuff<span class="gloss">subfolder = a frame on the canvas</span></li>
+                <li>.yawp.json<span class="gloss">sidecar — tldraw snapshot: positions, furniture, annotations, hue</span></li>
+              </ul>
+            </li>
+            <li>.yawp
+              <ul><li>index.db<span class="gloss">retrieval brain — FTS over agent descriptions + tags (0.2.0)</span></li></ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ ROADMAP ============ -->
+  <div class="gap-l"></div>
+  <div class="sechead">Roadmap <span class="d">— 0.0.x to 0.3.0</span></div>
+  <div class="gap-s"></div>
+
+  <div class="row">
+    <div class="label">Roadmap</div>
+    <div class="value">
+      <span class="sub">0.0.x — Scaffold</span>
+      <ul><li>Electron shell, ~/yawp root, tldraw mounted, routing. Exists, does not work yet.</li></ul>
+
+      <span class="sub">0.1.0 — The Loop</span>
+      <ul>
+        <li>Goal: calendar to a day, see the day's files on a canvas, capture, ping the agent — all persisting and staying live with Finder.</li>
+        <li>M1 · Calendar face — heatmap-grid → click → day; hover preview.</li>
+        <li>M2 · Day canvas — folder → FileCards; .yawp.json sidecar; furniture.</li>
+        <li>M3 · Live Finder sync — watcher, drag-drop, delete → trash (guarded), subfolder frames.</li>
+        <li>M4 · Capture — global hotkey → today; Finder drop; auto-create day.</li>
+        <li>M5 · Agent terminal — embedded Claude Code; the live loop closes.</li>
+      </ul>
+
+      <span class="sub">0.2.0 — Retrieval brain</span>
+      <ul><li>SQLite FTS index; describe + tag (silent); search + natural-language query; teleport / gather; propose-then-approve reorganize.</li></ul>
+
+      <span class="sub">0.3.0 — Skin &amp; senses</span>
+      <ul><li>Agent SDK panel over the same brain; semantic vectors (sqlite-vec); live heatmap thumbnails; adjacent-day traversal.</li></ul>
+    </div>
+  </div>
+
+  <!-- ============ COMPONENTS ============ -->
+  <div class="gap-l"></div>
+  <div class="sechead">Components <span class="d">— inventory; tag = milestone first needed</span></div>
+  <div class="gap-s"></div>
+
+  <div class="row">
+    <div class="label">Shell</div>
+    <div class="value"><ul>
+      <li>App window <span class="desc">— Electron frame, traffic-light inset.</span> <span class="step">0.0.x</span></li>
+      <li>Mode rail <span class="desc">— Calendar · Search · Today · Settings.</span> <span class="step">0.0.x</span></li>
+      <li>View header <span class="desc">— title + capture and search triggers.</span> <span class="step">0.0.x</span></li>
+      <li>Command palette <span class="desc">— ⌘K: jump to a date, search, run an action.</span> <span class="step">0.2.0</span></li>
+      <li>Settings panel <span class="desc">— root folder, hotkey, theme, agent auth.</span> <span class="step">0.1.0</span></li>
+      <li>Onboarding card <span class="desc">— staged setup progress (create root → import → index → connect).</span> <span class="step">0.1.0</span></li>
+    </ul></div>
+  </div>
+  <div class="row">
+    <div class="label">Calendar face</div>
+    <div class="value"><ul>
+      <li>Scroll container <span class="desc">— one stream of weeks, anchored on today.</span> <span class="step">M1</span></li>
+      <li>Weekday header · month rail · week row <span class="desc">— the grid scaffolding.</span> <span class="step">M1</span></li>
+      <li>Day cell <span class="desc">— core unit; states: empty · shaded · today · future · hover · selected.</span> <span class="step">M1</span></li>
+      <li>Preview bloom <span class="desc">— hover popover: item count + thumbnails.</span> <span class="step">M1</span></li>
+      <li>Event / hue tag <span class="desc">— palette pill on a day.</span> <span class="step">M1</span></li>
+    </ul></div>
+  </div>
+  <div class="row">
+    <div class="label">Day canvas</div>
+    <div class="value"><ul>
+      <li>Canvas surface <span class="desc">— pan / zoom, dot grid.</span> <span class="step">M2</span></li>
+      <li>FileCard <span class="desc">— variants: image · note · link · pdf · generic; hue-colorable.</span> <span class="step">M2</span></li>
+      <li>Subfolder frame <span class="desc">— frame on canvas; double-click to dive in.</span> <span class="step">M3</span></li>
+      <li>Furniture <span class="desc">— arrow · ink · text label · group frame.</span> <span class="step">M2</span></li>
+      <li>Drop indicator · context menu · delete confirm · breadcrumb. <span class="step">M3</span></li>
+    </ul></div>
+  </div>
+  <div class="row">
+    <div class="label">Capture</div>
+    <div class="value"><ul>
+      <li>Capture window <span class="desc">— global-hotkey drop / paste to today.</span> <span class="step">M4</span></li>
+      <li>Drop overlay · capture toast. <span class="step">M4</span></li>
+    </ul></div>
+  </div>
+  <div class="row">
+    <div class="label">Agent</div>
+    <div class="value"><ul>
+      <li>Terminal panel <span class="desc">— embedded xterm, dockable.</span> <span class="step">M5</span></li>
+      <li>Agent annotation <span class="desc">— marks rendered as furniture.</span> <span class="step">M5</span></li>
+      <li>Index status · approval card (propose-then-approve). <span class="step">0.2.0</span></li>
+      <li>Agent panel skin <span class="desc">— pretty chat over the same brain.</span> <span class="step">0.3.0</span></li>
+    </ul></div>
+  </div>
+  <div class="row">
+    <div class="label">Retrieval</div>
+    <div class="value"><ul>
+      <li>Search bar <span class="desc">— keyword + natural-language.</span> <span class="step">0.2.0</span></li>
+      <li>Result list / item · gather board · tag chip / editor · no-results. <span class="step">0.2.0</span></li>
+    </ul></div>
+  </div>
+  <div class="row">
+    <div class="label">Primitives</div>
+    <div class="value"><ul>
+      <li>Button · toggle · popover · toast · modal · context menu · thumbnail · skeleton. <span class="desc">Shared everywhere.</span></li>
+    </ul></div>
+  </div>
+
+  <!-- ============ PALETTE ============ -->
+  <div class="gap-l"></div>
+  <div class="sechead">Palette <span class="d">— six hues + neutral; base + deep tonal, plus a card triad each (light + dark)</span></div>
+  <div class="gap-s"></div>
+
+  <div class="row">
+    <div class="label">Card colors</div>
+    <div class="value">
+      <div class="pal">
+        <div class="swat"><span class="c" style="background:#F2615A"></span><span class="c" style="background:#7A1518"></span><div><div class="nm">Coral</div><div class="hx">design / alerts · #F2615A / #7A1518</div></div></div>
+        <div class="swat"><span class="c" style="background:#E8732E"></span><span class="c" style="background:#6E1A12"></span><div><div class="nm">Orange</div><div class="hx">in progress / draft · #E8732E / #6E1A12</div></div></div>
+        <div class="swat"><span class="c" style="background:#F5C518"></span><span class="c" style="background:#6E4E0A"></span><div><div class="nm">Gold</div><div class="hx">pinned / flagged · #F5C518 / #6E4E0A</div></div></div>
+        <div class="swat"><span class="c" style="background:#29B45D"></span><span class="c" style="background:#0B4A1F"></span><div><div class="nm">Green</div><div class="hx">build / done · #29B45D / #0B4A1F</div></div></div>
+        <div class="swat"><span class="c" style="background:#5B8DEF"></span><span class="c" style="background:#1B2B86"></span><div><div class="nm">Blue</div><div class="hx">reference / notes · #5B8DEF / #1B2B86</div></div></div>
+        <div class="swat"><span class="c" style="background:#B07DF0"></span><span class="c" style="background:#3C1B79"></span><div><div class="nm">Purple</div><div class="hx">identity / current · #B07DF0 / #3C1B79</div></div></div>
+        <div class="swat"><span class="c" style="background:#A1A1AA"></span><span class="c" style="background:#3F3F46"></span><div><div class="nm">Neutral</div><div class="hx">untagged · #A1A1AA / #3F3F46</div></div></div>
+      </div>
+      <span class="sub">Each hue derives a card triad — accent (the bar) / fill (low-opacity tint) / title / body — for both light and dark. The pair shown is base (vivid card) + deep (tonal text/shape). Full values in <code>tokens.css</code>. Violet/Purple is reserved as identity / current; Neutral is untagged.</span>
+    </div>
+  </div>
+
+  <!-- ============ SHIPPING ============ -->
+  <div class="gap-l"></div>
+  <div class="sechead">Shipping <span class="d">— Electron build to a download; general pipeline at left, yawp at right</span></div>
+  <div class="gap-s"></div>
+
+  <div class="row">
+    <div class="label">The path</div>
+    <div class="value">
+      <ul>
+        <li><span class="step">01</span> &nbsp; Build — the app becomes a <code>.app</code></li>
+        <li><span class="step">02</span> &nbsp; Identity — icon, name, bundle id, version</li>
+        <li><span class="step">03</span> &nbsp; Sign — a Developer ID certificate</li>
+        <li><span class="step">04</span> &nbsp; Notarize — Apple scans and approves it</li>
+        <li><span class="step">05</span> &nbsp; Package — the DMG window</li>
+        <li><span class="step">06</span> &nbsp; Distribute — where the download lives</li>
+        <li><span class="step">07</span> &nbsp; First open — Gatekeeper and quarantine</li>
+        <li><span class="step">08</span> &nbsp; Onboarding — the app opening for the first time</li>
+        <li><span class="step">09</span> &nbsp; Update — keeping it current</li>
+      </ul>
+      <span class="sub">Steps 03 and 04 are the wall — they need an Apple Developer Program account. Everything else is free.</span>
+    </div>
+  </div>
+
+  <div class="srow">
+    <div class="label colhead"></div>
+    <div class="value colhead">General pipeline</div>
+    <div class="yawp"><span class="colhead">yawp</span></div>
+  </div>
+
+  <div class="srow">
+    <div class="label">01–02 Build &amp; identity</div>
+    <div class="value">electron-builder turns the project into a signed-ready <code>.app</code>: universal binary, <code>.icns</code> icon, permanent reverse-DNS bundle id, entitlements.</div>
+    <div class="yawp"><span class="lbl">yawp-app, Crisp stack</span><ul><li>Electron + Vite + React → <code>yawp.app</code></li><li><code>org.wa-de.yawp</code></li><li>file + network entitlements</li></ul></div>
+  </div>
+  <div class="srow">
+    <div class="label">03–04 Sign &amp; notarize</div>
+    <div class="value">A Developer ID Application cert signs the app; Apple notarizes it so Gatekeeper opens it cleanly on other Macs. Both require the $99/yr Developer Program.</div>
+    <div class="yawp"><span class="lbl">Blocked — no account</span><ul><li>Unsigned today; runs for you + friends via right-click → Open</li><li>Leave signing as the one empty field</li></ul></div>
+  </div>
+  <div class="srow">
+    <div class="label">05 Package</div>
+    <div class="value">A DMG mounts a Finder window: background art, app icon, an Applications alias, drag to install. Configured in electron-builder's <code>dmg</code> block.</div>
+    <div class="yawp"><span class="lbl">On-brand window</span><ul><li>white bg, B&amp;W type</li><li>violet arrow → Applications</li></ul></div>
+  </div>
+  <div class="srow">
+    <div class="label">06–07 Distribute &amp; first open</div>
+    <div class="value">Download page + GitHub Releases. Signed + notarized = one prompt then opens; unsigned = "developer cannot be verified," needs right-click → Open.</div>
+    <div class="yawp"><span class="lbl">Use the existing site</span><ul><li>the yawp Next.js site gets the download button</li><li>binary on GitHub Releases</li></ul></div>
+  </div>
+  <div class="srow">
+    <div class="label">08 Onboarding</div>
+    <div class="value">The first-run experience: brand moment, the staged-progress card, permission priming, an honest empty state inviting the first capture.</div>
+    <div class="yawp"><span class="lbl">Setup = the pitch</span><ul><li>create ~/yawp → import → index + describe → connect → Ready</li><li>watching the agent read your archive is the demo</li></ul></div>
+  </div>
+  <div class="srow">
+    <div class="label">09 Update</div>
+    <div class="value"><code>electron-updater</code> + a feed = silent background updates (also needs signing). Semantic versions, release notes, crash reporter.</div>
+    <div class="yawp"><span class="lbl">Off GitHub Releases</span><ul><li>updater reads the Releases feed</li></ul></div>
+  </div>
+
+  <div class="row">
+    <div class="label">The account</div>
+    <div class="value">Signing + notarization is the only hard blocker — one decision. Build the whole pipeline now <i>as if</i> signed; leave the signing identity as the one empty field, and "ship for real" becomes a switch, not a project.</div>
+  </div>
+
+  <!-- ============ OPEN ============ -->
+  <div class="gap-l"></div>
+  <div class="sechead">Open <span class="d">— yours to design / undecided</span></div>
+  <div class="gap-s"></div>
+
+  <div class="row">
+    <div class="label">Yours to design</div>
+    <div class="value"><ul>
+      <li>The calendar view (continuous-scroll chosen; month grid alongside).</li>
+      <li>The FileCard look per type; the agent panel skin (0.3.0).</li>
+    </ul></div>
+  </div>
+  <div class="row">
+    <div class="label">Undecided</div>
+    <div class="value"><ul>
+      <li>Light vs dark vs both as the canvas theme (the token system makes "both" nearly free).</li>
+      <li>Whether all six hues are user-pickable tags or a tighter set; user-configurable root.</li>
+      <li>Apple Developer account: stay unsigned, personal enrollment, or borrow an account.</li>
+    </ul></div>
+  </div>
+
+  <div class="gap-l"></div>
+  <div class="row">
+    <div class="label">Doc</div>
+    <div class="value">Compiled 22 Jun 2026. ~/Projects/yawp/brainstorming/. Briana Wade. Combines: spec · roadmap · components · shipping.</div>
+  </div>
+
+</div>
+</body>
+</html>

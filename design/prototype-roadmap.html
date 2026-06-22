@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yawp roadmap — 5 directions</title>
+<style>
+  @font-face {
+    font-family: "Inter";
+    src: url("https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5/files/inter-latin-wght-normal.woff2") format("woff2");
+    font-weight: 100 900; font-style: normal; font-display: swap;
+  }
+  :root {
+    --ink: #18181B;
+    --ink-2: #52525B;
+    --line: #E4E4E7;
+    --line-2: #F1F1F3;
+    --violet: #7C3AED;
+    --bg: #FFFFFF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    font-family: "Inter", sans-serif;
+    font-size: 14px; font-weight: 400; line-height: 1.6;
+    color: var(--ink); background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1240px; padding: 72px 56px 160px; margin: 0 auto; }
+  .masthead { margin-bottom: 8px; }
+  .masthead .desc { color: var(--ink-2); }
+
+  .variation { padding: 64px 0 8px; border-top: 1px solid var(--line); margin-top: 56px; }
+  .variation:first-of-type { border-top: none; margin-top: 40px; }
+  .vlabel { color: var(--ink-2); margin-bottom: 36px; }
+
+  .tip {
+    position: absolute; z-index: 5; left: 0; top: calc(100% + 8px);
+    min-width: 180px; max-width: 240px;
+    background: var(--ink); color: #fff; padding: 8px 10px;
+    font-size: 12px; line-height: 1.5; border-radius: 4px;
+    opacity: 0; visibility: hidden; transform: translateY(-3px);
+    transition: opacity .14s ease, transform .14s ease; pointer-events: none;
+  }
+  .has-tip { position: relative; }
+  .has-tip:hover .tip { opacity: 1; visibility: visible; transform: translateY(0); }
+
+  /* ============ 01 · SWISS MODULAR-GRID GANTT ============ */
+  .v1 .ghead, .v1 .grow {
+    display: grid;
+    grid-template-columns: 184px repeat(24, 1fr);
+    align-items: center;
+  }
+  .v1 .ghead { padding-bottom: 10px; }
+  .v1 .gphase { color: var(--ink-2); padding-left: 10px; border-left: 1px solid var(--ink); }
+  .v1 .gphase.first { border-left: none; padding-left: 0; }
+  .v1 .grow { min-height: 40px; border-top: 1px solid var(--line); }
+  .v1 .glabel { color: var(--ink); padding-right: 16px; }
+  .v1 .glabel .m { color: var(--ink-2); }
+  .v1 .bar {
+    height: 14px; background: var(--ink); border-radius: 0;
+    transition: opacity .14s ease;
+  }
+  .v1 .grow:hover .bar { opacity: .55; }
+  .v1 .grow.now .bar { background: var(--violet); }
+  .v1 .grow.now .glabel { color: var(--violet); }
+
+  /* ============ 02 · EDITORIAL LEDGER ============ */
+  .v2 { max-width: 760px; }
+  .v2 .phase { display: block; color: var(--ink-2); margin: 28px 0 8px; }
+  .v2 .phase:first-child { margin-top: 0; }
+  .v2 .line {
+    display: grid; grid-template-columns: 52px 200px 1fr; gap: 20px;
+    padding: 7px 0; border-top: 1px solid var(--line-2);
+    transition: background .12s ease;
+  }
+  .v2 .line:hover { background: #FAFAFA; }
+  .v2 .num { color: var(--ink-2); }
+  .v2 .nm { color: var(--ink); }
+  .v2 .gl { color: var(--ink-2); }
+  .v2 .line.now .num, .v2 .line.now .nm { color: var(--violet); }
+  .v2 .now-tag { color: var(--violet); }
+
+  /* ============ 03 · VIGNELLI TRANSIT LINE ============ */
+  .v3 .wrap { overflow-x: auto; padding: 40px 0; }
+  .v3 svg { display: block; }
+  .v3 .st { cursor: default; }
+  .v3 .st circle { transition: r .14s ease; }
+  .v3 .st:hover circle.dot { r: 9; }
+  .v3 .label { font-size: 13px; fill: var(--ink); }
+  .v3 .label.sub { fill: var(--ink-2); font-size: 12px; }
+  .v3 .phaselab { fill: var(--ink-2); font-size: 12px; letter-spacing: .04em; }
+
+  /* ============ 04 · TECHNICAL BLUEPRINT ============ */
+  .v4 .wrap { overflow-x: auto; padding: 8px 0 24px; }
+  .v4 svg { display: block; }
+  .v4 .axis { stroke: var(--ink); stroke-width: 1; }
+  .v4 .tick { stroke: var(--ink); stroke-width: 1; }
+  .v4 .lead { stroke: var(--ink-2); stroke-width: 1; stroke-dasharray: 2 3; }
+  .v4 .dim { stroke: var(--ink-2); stroke-width: 1; }
+  .v4 .cap { font-size: 12px; fill: var(--ink); }
+  .v4 .cap.sub { fill: var(--ink-2); }
+  .v4 .meas { font-size: 11px; fill: var(--ink-2); letter-spacing: .03em; }
+
+  /* ============ 05 · BAUHAUS POSTER ============ */
+  .v5 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 64px; align-items: start; }
+  .v5 .big { font-weight: 200; font-size: 132px; line-height: .9; letter-spacing: -.03em; }
+  .v5 .big.now { color: var(--violet); font-weight: 600; }
+  .v5 .phasetitle { color: var(--ink-2); margin: 6px 0 22px; }
+  .v5 .ms { }
+  .v5 .ms .row { display: grid; grid-template-columns: 44px 1fr; gap: 14px; padding: 6px 0; }
+  .v5 .ms .row .k { color: var(--ink-2); }
+  .v5 .ms .row.now .k, .v5 .ms .row.now .vlab { color: var(--violet); }
+  .v5 .blockA { grid-column: 1; }
+  .v5 .blockB { grid-column: 2; }
+  .v5 hr { border: none; border-top: 1px solid var(--line); margin: 36px 0; grid-column: 1 / 3; }
+
+  @media (max-width: 900px) {
+    .page { padding: 48px 22px 120px; }
+    .v5 { grid-template-columns: 1fr; }
+    .v5 .big { font-size: 88px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="masthead">yawp roadmap — five directions</div>
+  <div class="masthead desc">Same content, divergent bones. Pick by number. Violet marks the current milestone (M1).</div>
+
+  <!-- ===================== 01 ===================== -->
+  <section class="variation">
+    <div class="vlabel">01 · Swiss modular-grid gantt — strict grid, hairlines, bars not cards</div>
+    <div class="v1">
+      <div class="ghead">
+        <div></div>
+        <div class="gphase first" style="grid-column:2/5">0.0.x</div>
+        <div class="gphase" style="grid-column:5/17">0.1.0 — The Loop</div>
+        <div class="gphase" style="grid-column:17/21">0.2.0</div>
+        <div class="gphase" style="grid-column:21/26">0.3.0</div>
+      </div>
+
+      <div class="grow">
+        <div class="glabel"><span class="m">0.0.x</span> · Scaffold</div>
+        <div class="bar has-tip" style="grid-column:2/5">
+          <span class="tip">Electron shell · ~/yawp root · tldraw mounted · routing</span>
+        </div>
+      </div>
+      <div class="grow now">
+        <div class="glabel"><span class="m">M1</span> · Calendar face</div>
+        <div class="bar has-tip" style="grid-column:5/7">
+          <span class="tip">GitHub heatmap (cal-heatmap) · B&amp;W ramp · click → day · hover → thumbnail</span>
+        </div>
+      </div>
+      <div class="grow">
+        <div class="glabel"><span class="m">M2</span> · Day canvas</div>
+        <div class="bar has-tip" style="grid-column:7/9">
+          <span class="tip">folder → FileCards · .yawp.json sidecar · furniture layer</span>
+        </div>
+      </div>
+      <div class="grow">
+        <div class="glabel"><span class="m">M3</span> · Live Finder sync</div>
+        <div class="bar has-tip" style="grid-column:9/11">
+          <span class="tip">watcher · drag-drop · delete → trash (guarded) · subfolder frames</span>
+        </div>
+      </div>
+      <div class="grow">
+        <div class="glabel"><span class="m">M4</span> · Capture</div>
+        <div class="bar has-tip" style="grid-column:11/13">
+          <span class="tip">global hotkey → today · Finder drop · auto-create day</span>
+        </div>
+      </div>
+      <div class="grow">
+        <div class="glabel"><span class="m">M5</span> · Agent terminal</div>
+        <div class="bar has-tip" style="grid-column:13/15">
+          <span class="tip">embedded Claude Code · context file · the live loop closes</span>
+        </div>
+      </div>
+      <div class="grow">
+        <div class="glabel"><span class="m">0.2.0</span> · Retrieval brain</div>
+        <div class="bar has-tip" style="grid-column:17/21">
+          <span class="tip">SQLite FTS index · describe + tag (silent) · search + NL query · teleport / gather</span>
+        </div>
+      </div>
+      <div class="grow">
+        <div class="glabel"><span class="m">0.3.0</span> · Skin &amp; senses</div>
+        <div class="bar has-tip" style="grid-column:21/26">
+          <span class="tip">Agent SDK panel · semantic vectors · live heatmap thumbnails</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 02 ===================== -->
+  <section class="variation">
+    <div class="vlabel">02 · Editorial ledger — your B&amp;W index voice, numbered and flush-left</div>
+    <div class="v2">
+      <span class="phase">0.0.x — Scaffold</span>
+      <div class="line">
+        <div class="num">00</div><div class="nm">Scaffold</div>
+        <div class="gl">Electron shell, ~/yawp root, tldraw mounted, routing. Exists, doesn't work yet.</div>
+      </div>
+
+      <span class="phase">0.1.0 — The Loop</span>
+      <div class="line now">
+        <div class="num">M1</div><div class="nm">Calendar face <span class="now-tag">· now</span></div>
+        <div class="gl">GitHub heatmap (cal-heatmap), B&amp;W ramp, click → day, hover → thumbnail.</div>
+      </div>
+      <div class="line">
+        <div class="num">M2</div><div class="nm">Day canvas</div>
+        <div class="gl">Folder → FileCards, .yawp.json sidecar, furniture layer.</div>
+      </div>
+      <div class="line">
+        <div class="num">M3</div><div class="nm">Live Finder sync</div>
+        <div class="gl">Watcher, drag-drop, delete → trash (guarded), subfolder frames.</div>
+      </div>
+      <div class="line">
+        <div class="num">M4</div><div class="nm">Capture</div>
+        <div class="gl">Global hotkey → today, Finder drop, auto-create day.</div>
+      </div>
+      <div class="line">
+        <div class="num">M5</div><div class="nm">Agent terminal</div>
+        <div class="gl">Embedded Claude Code, context file, the live loop closes.</div>
+      </div>
+
+      <span class="phase">0.2.0 — Retrieval brain</span>
+      <div class="line">
+        <div class="num">20</div><div class="nm">Retrieval brain</div>
+        <div class="gl">SQLite FTS index, describe + tag (silent), search + NL query, teleport / gather.</div>
+      </div>
+
+      <span class="phase">0.3.0 — Skin &amp; senses</span>
+      <div class="line">
+        <div class="num">30</div><div class="nm">Skin &amp; senses</div>
+        <div class="gl">Agent SDK panel, semantic vectors, live heatmap thumbnails.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 03 ===================== -->
+  <section class="variation">
+    <div class="vlabel">03 · Vignelli transit line — milestones as stations on one build line</div>
+    <div class="v3">
+      <div class="wrap">
+        <svg width="1120" height="220" viewBox="0 0 1120 220">
+          <!-- phase labels -->
+          <text class="phaselab" x="40" y="36">0.0.X</text>
+          <text class="phaselab" x="250" y="36">0.1.0 — THE LOOP</text>
+          <text class="phaselab" x="830" y="36">0.2.0</text>
+          <text class="phaselab" x="990" y="36">0.3.0</text>
+          <!-- the line -->
+          <line x1="40" y1="110" x2="1080" y2="110" stroke="#18181B" stroke-width="3"/>
+
+          <!-- stations: x positions -->
+          <!-- 0.0.x -->
+          <g class="st"><line x1="60" y1="110" x2="60" y2="74" stroke="#E4E4E7"/>
+            <circle class="dot" cx="60" cy="110" r="6" fill="#fff" stroke="#18181B" stroke-width="3"/>
+            <text class="label" x="60" y="64" text-anchor="middle">Scaffold</text>
+            <text class="label sub" x="60" y="138" text-anchor="middle">0.0.x</text></g>
+
+          <!-- M1 now -->
+          <g class="st"><line x1="250" y1="110" x2="250" y2="74" stroke="#E4E4E7"/>
+            <circle cx="250" cy="110" r="11" fill="none" stroke="#7C3AED" stroke-width="2"/>
+            <circle class="dot" cx="250" cy="110" r="6" fill="#7C3AED"/>
+            <text class="label" x="250" y="64" text-anchor="middle" fill="#7C3AED">Calendar face</text>
+            <text class="label sub" x="250" y="138" text-anchor="middle" fill="#7C3AED">M1 · now</text></g>
+
+          <!-- M2 -->
+          <g class="st"><line x1="370" y1="110" x2="370" y2="146" stroke="#E4E4E7"/>
+            <circle class="dot" cx="370" cy="110" r="6" fill="#18181B"/>
+            <text class="label" x="370" y="170" text-anchor="middle">Day canvas</text>
+            <text class="label sub" x="370" y="96" text-anchor="middle">M2</text></g>
+
+          <!-- M3 -->
+          <g class="st"><line x1="490" y1="110" x2="490" y2="74" stroke="#E4E4E7"/>
+            <circle class="dot" cx="490" cy="110" r="6" fill="#18181B"/>
+            <text class="label" x="490" y="64" text-anchor="middle">Live Finder sync</text>
+            <text class="label sub" x="490" y="138" text-anchor="middle">M3</text></g>
+
+          <!-- M4 -->
+          <g class="st"><line x1="610" y1="110" x2="610" y2="146" stroke="#E4E4E7"/>
+            <circle class="dot" cx="610" cy="110" r="6" fill="#18181B"/>
+            <text class="label" x="610" y="170" text-anchor="middle">Capture</text>
+            <text class="label sub" x="610" y="96" text-anchor="middle">M4</text></g>
+
+          <!-- M5 -->
+          <g class="st"><line x1="730" y1="110" x2="730" y2="74" stroke="#E4E4E7"/>
+            <circle class="dot" cx="730" cy="110" r="6" fill="#18181B"/>
+            <text class="label" x="730" y="64" text-anchor="middle">Agent terminal</text>
+            <text class="label sub" x="730" y="138" text-anchor="middle">M5</text></g>
+
+          <!-- 0.2.0 interchange -->
+          <g class="st"><line x1="870" y1="110" x2="870" y2="146" stroke="#E4E4E7"/>
+            <circle cx="870" cy="110" r="10" fill="#fff" stroke="#18181B" stroke-width="3"/>
+            <text class="label" x="870" y="170" text-anchor="middle">Retrieval brain</text>
+            <text class="label sub" x="870" y="92" text-anchor="middle">0.2.0</text></g>
+
+          <!-- 0.3.0 terminus -->
+          <g class="st"><line x1="1040" y1="110" x2="1040" y2="74" stroke="#E4E4E7"/>
+            <circle cx="1040" cy="110" r="10" fill="#fff" stroke="#18181B" stroke-width="3"/>
+            <text class="label" x="1040" y="64" text-anchor="middle">Skin &amp; senses</text>
+            <text class="label sub" x="1040" y="138" text-anchor="middle">0.3.0</text></g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 04 ===================== -->
+  <section class="variation">
+    <div class="vlabel">04 · Technical blueprint — measured baseline, leader lines, dimension callouts</div>
+    <div class="v4">
+      <div class="wrap">
+        <svg width="1120" height="300" viewBox="0 0 1120 300">
+          <!-- baseline axis -->
+          <line class="axis" x1="40" y1="210" x2="1080" y2="210"/>
+          <!-- dimension line for 0.1.0 span -->
+          <line class="dim" x1="220" y1="248" x2="700" y2="248"/>
+          <line class="dim" x1="220" y1="242" x2="220" y2="254"/>
+          <line class="dim" x1="700" y1="242" x2="700" y2="254"/>
+          <text class="meas" x="460" y="270" text-anchor="middle">0.1.0 — THE LOOP · M1–M5</text>
+
+          <!-- node at each milestone: tick + leader + callout -->
+          <!-- 0.0.x -->
+          <line class="tick" x1="70" y1="204" x2="70" y2="216"/>
+          <line class="lead" x1="70" y1="204" x2="70" y2="150"/>
+          <text class="cap" x="70" y="140" text-anchor="middle">0.0.x Scaffold</text>
+          <text class="cap sub" x="70" y="124" text-anchor="middle">shell · root · routing</text>
+
+          <!-- M1 now -->
+          <line class="tick" x1="220" y1="200" x2="220" y2="220" stroke="#7C3AED" stroke-width="2"/>
+          <line x1="220" y1="200" x2="220" y2="96" stroke="#7C3AED" stroke-dasharray="2 3"/>
+          <circle cx="220" cy="210" r="5" fill="#7C3AED"/>
+          <text class="cap" x="220" y="86" text-anchor="middle" fill="#7C3AED">M1 Calendar face</text>
+          <text class="cap sub" x="220" y="70" text-anchor="middle" fill="#7C3AED">heatmap · click→day · NOW</text>
+
+          <!-- M2 -->
+          <line class="tick" x1="340" y1="204" x2="340" y2="216"/>
+          <line class="lead" x1="340" y1="216" x2="340" y2="262"/>
+          <text class="cap" x="340" y="296" text-anchor="middle">M2 Day canvas</text>
+          <text class="cap sub" x="340" y="282" text-anchor="middle">folder→cards · sidecar</text>
+
+          <!-- M3 -->
+          <line class="tick" x1="460" y1="204" x2="460" y2="216"/>
+          <line class="lead" x1="460" y1="204" x2="460" y2="150"/>
+          <text class="cap" x="460" y="140" text-anchor="middle">M3 Finder sync</text>
+          <text class="cap sub" x="460" y="124" text-anchor="middle">watcher · drag · trash</text>
+
+          <!-- M4 -->
+          <line class="tick" x1="580" y1="204" x2="580" y2="216"/>
+          <line class="lead" x1="580" y1="216" x2="580" y2="262"/>
+          <text class="cap" x="580" y="296" text-anchor="middle">M4 Capture</text>
+          <text class="cap sub" x="580" y="282" text-anchor="middle">hotkey → today</text>
+
+          <!-- M5 -->
+          <line class="tick" x1="700" y1="204" x2="700" y2="216"/>
+          <line class="lead" x1="700" y1="204" x2="700" y2="150"/>
+          <text class="cap" x="700" y="140" text-anchor="middle">M5 Agent terminal</text>
+          <text class="cap sub" x="700" y="124" text-anchor="middle">Claude Code · live loop</text>
+
+          <!-- 0.2.0 -->
+          <line class="tick" x1="860" y1="204" x2="860" y2="216"/>
+          <line class="lead" x1="860" y1="216" x2="860" y2="262"/>
+          <text class="cap" x="860" y="296" text-anchor="middle">0.2.0 Retrieval brain</text>
+          <text class="cap sub" x="860" y="282" text-anchor="middle">FTS · search · gather</text>
+
+          <!-- 0.3.0 -->
+          <line class="tick" x1="1040" y1="204" x2="1040" y2="216"/>
+          <line class="lead" x1="1040" y1="204" x2="1040" y2="150"/>
+          <text class="cap" x="1040" y="140" text-anchor="middle">0.3.0 Skin &amp; senses</text>
+          <text class="cap sub" x="1040" y="124" text-anchor="middle">panel · vectors · thumbs</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 05 ===================== -->
+  <section class="variation">
+    <div class="vlabel">05 · Bauhaus poster — oversized version numerals, asymmetric grid (loud option)</div>
+    <div class="v5">
+      <div class="blockA">
+        <div class="big">0.0.x</div>
+        <div class="phasetitle">Scaffold</div>
+        <div class="ms">
+          <div class="row"><div class="k">00</div><div class="vlab">Electron shell · ~/yawp root · tldraw · routing</div></div>
+        </div>
+      </div>
+      <div class="blockB">
+        <div class="big now">0.1.0</div>
+        <div class="phasetitle">The Loop</div>
+        <div class="ms">
+          <div class="row now"><div class="k">M1</div><div class="vlab">Calendar face — heatmap, click→day · now</div></div>
+          <div class="row"><div class="k">M2</div><div class="vlab">Day canvas — folder→FileCards, sidecar</div></div>
+          <div class="row"><div class="k">M3</div><div class="vlab">Live Finder sync — watcher, drag, trash</div></div>
+          <div class="row"><div class="k">M4</div><div class="vlab">Capture — hotkey → today</div></div>
+          <div class="row"><div class="k">M5</div><div class="vlab">Agent terminal — Claude Code, live loop</div></div>
+        </div>
+      </div>
+
+      <hr>
+
+      <div class="blockA">
+        <div class="big">0.2.0</div>
+        <div class="phasetitle">Retrieval brain</div>
+        <div class="ms">
+          <div class="row"><div class="k">20</div><div class="vlab">SQLite FTS index · describe+tag · search + NL · teleport / gather</div></div>
+        </div>
+      </div>
+      <div class="blockB">
+        <div class="big">0.3.0</div>
+        <div class="phasetitle">Skin &amp; senses</div>
+        <div class="ms">
+          <div class="row"><div class="k">30</div><div class="vlab">Agent SDK panel · semantic vectors · live heatmap thumbnails</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yawp — calendar color study</title>
+<script>
+  /* no-flash: resolve theme before body paints. stored choice wins, else OS. */
+  (function () {
+    var saved = localStorage.getItem('theme');
+    var dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+  })();
+</script>
+<style>
+  @font-face {
+    font-family: "Inter";
+    src: url("https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5/files/inter-latin-wght-normal.woff2") format("woff2");
+    font-weight: 100 900; font-style: normal; font-display: swap;
+  }
+
+  /* ---------- LIGHT (default) ---------- */
+  :root {
+    --bg: #ECECEE;
+    --panel: #FFFFFF;
+    --line: rgba(0,0,0,.07);
+    --line-2: rgba(0,0,0,.12);
+    --hl: rgba(0,0,0,.06);
+    --txt: #18181B;
+    --txt-2: #6B6B72;
+    --txt-3: #9A9AA0;
+
+    --rust-a:#F97316; --rust-f:rgba(249,115,22,.17); --rust-t:#EA580C; --rust-b:rgba(234,88,12,.82);
+    --emer-a:#10B981; --emer-f:rgba(16,185,129,.16); --emer-t:#059669; --emer-b:rgba(5,150,105,.84);
+    --azur-a:#3B82F6; --azur-f:rgba(59,130,246,.15); --azur-t:#2563EB; --azur-b:rgba(37,99,235,.84);
+    --neut-a:#A1A1AA; --neut-f:rgba(24,24,27,.05);   --neut-t:#3F3F46; --neut-b:rgba(63,63,70,.72);
+    --viol-a:#8B5CF6; --viol-f:rgba(139,92,246,.16); --viol-t:#7C3AED; --viol-b:rgba(124,58,237,.84);
+  }
+
+  /* ---------- DARK ---------- */
+  :root[data-theme="dark"] {
+    --bg: #131315;
+    --panel: #161618;
+    --line: rgba(255,255,255,.06);
+    --line-2: rgba(255,255,255,.10);
+    --hl: rgba(255,255,255,.10);
+    --txt: #E6E6E8;
+    --txt-2: #8A8A90;
+    --txt-3: #5C5C63;
+
+    --rust-a:#E8743B; --rust-f:rgba(232,116,59,.15); --rust-t:#F0A075; --rust-b:rgba(240,160,117,.72);
+    --emer-a:#46C08A; --emer-f:rgba(70,192,138,.14); --emer-t:#83D6AF; --emer-b:rgba(131,214,175,.72);
+    --azur-a:#4AA3E8; --azur-f:rgba(74,163,232,.14); --azur-t:#8AC4F1; --azur-b:rgba(138,196,241,.72);
+    --neut-a:#D4D4D8; --neut-f:rgba(212,212,216,.08);--neut-t:#EAEAEC; --neut-b:rgba(212,212,216,.55);
+    --viol-a:#8B5CF6; --viol-f:rgba(139,92,246,.16); --viol-t:#B89DFB; --viol-b:rgba(184,157,251,.72);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    font-family: "Inter", sans-serif; font-size: 13px; line-height: 1.5;
+    color: var(--txt); background: var(--bg); -webkit-font-smoothing: antialiased;
+    padding: 40px;
+  }
+  /* cross-fade — themed surfaces + text tiers */
+  body, .cal, .side, .col, .ev, .adbar, .fc, .chip, .bar, .todo .box,
+  .ev .t, .ev .x, .ev .tm, .fc .ft, .fc .fm, .lead, .days .d, .mini td {
+    transition: background-color .22s ease, border-color .22s ease, color .22s ease;
+  }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; max-width: 1320px; margin-bottom: 18px; }
+  .lead { color: var(--txt-2); font-size: 13px; }
+  .theme-toggle { background: none; border: 0; padding: 0; cursor: pointer; color: var(--txt-3); display: inline-flex; transition: color .12s ease; }
+  .theme-toggle:hover { color: var(--txt); }
+
+  /* ============ CALENDAR ============ */
+  .cal {
+    display: grid; grid-template-columns: 256px 1fr;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 14px; overflow: hidden; max-width: 1320px;
+  }
+  .side { border-right: 1px solid var(--line); padding: 22px 20px; }
+  .side .mhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .side .mhead .m { font-size: 15px; }
+  .side .mhead .m b { font-weight: 600; }
+  .side .mhead .m span { color: var(--txt-2); }
+  .side .mhead .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--rust-a); }
+  .mini { width: 100%; border-collapse: collapse; }
+  .mini th { color: var(--txt-3); font-weight: 400; font-size: 12px; padding: 4px 0; text-align: center; }
+  .mini td { text-align: center; padding: 6px 0; color: var(--txt-2); font-size: 12px; }
+  .mini td.dim { color: var(--txt-3); }
+  .mini td.today { color: var(--txt); }
+  .mini td.today span { background: var(--hl); border-radius: 6px; padding: 4px 7px; }
+  .tabs { display: flex; gap: 18px; margin: 22px 0 14px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+  .tabs span { color: var(--txt-2); }
+  .tabs span.on { color: var(--txt); }
+  .todo { display: flex; gap: 9px; align-items: flex-start; padding: 7px 0; color: var(--txt); }
+  .todo .box { width: 14px; height: 14px; border: 1px solid var(--line-2); border-radius: 4px; flex: 0 0 auto; margin-top: 2px; }
+  .todo.done .box { background: var(--txt-3); border-color: var(--txt-3); }
+  .todo.done span { color: var(--txt-2); }
+  .bar { height: 4px; background: var(--hl); border-radius: 2px; margin-top: 16px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 52%; background: var(--txt-2); }
+
+  .tl { display: flex; flex-direction: column; }
+  .tl .days { display: grid; grid-template-columns: 56px repeat(7, 1fr); border-bottom: 1px solid var(--line); }
+  .tl .days .g { color: var(--txt-3); font-size: 11px; padding: 14px 0 14px 12px; }
+  .tl .days .d { color: var(--txt-2); font-size: 12px; padding: 14px 0; text-align: center; }
+  .tl .days .d.today span { background: var(--hl); color: var(--txt); padding: 4px 10px; border-radius: 6px; }
+
+  .allday { display: grid; grid-template-columns: 56px repeat(7, 1fr); border-bottom: 1px solid var(--line); padding: 6px 0; }
+  .adbar { margin: 0 4px; height: 18px; border-radius: 4px; border-left: 3px solid; font-size: 11px; padding: 1px 8px; display: flex; align-items: center; }
+
+  .body { display: grid; grid-template-columns: 56px 1fr; }
+  .gutter .h { height: 64px; color: var(--txt-3); font-size: 11px; padding: 4px 0 0 12px; }
+  .cols {
+    display: grid; grid-template-columns: repeat(7, 1fr); position: relative;
+    background-image: repeating-linear-gradient(to bottom, transparent, transparent 63px, var(--line) 63px, var(--line) 64px);
+  }
+  .col { border-left: 1px solid var(--line); position: relative; min-height: 448px; }
+  .col:first-child { border-left: none; }
+
+  .ev { position: absolute; left: 5px; right: 5px; border-radius: 6px; border-left: 3px solid; padding: 7px 9px; overflow: hidden; }
+  .ev .t { font-weight: 500; }
+  .ev .x { margin-top: 3px; }
+  .ev .tm { margin-top: 5px; font-size: 11px; }
+
+  .rust { background: var(--rust-f); border-color: var(--rust-a); }
+  .rust .t { color: var(--rust-t); } .rust .x, .rust .tm { color: var(--rust-b); }
+  .emer { background: var(--emer-f); border-color: var(--emer-a); }
+  .emer .t { color: var(--emer-t); } .emer .x, .emer .tm { color: var(--emer-b); }
+  .azur { background: var(--azur-f); border-color: var(--azur-a); }
+  .azur .t { color: var(--azur-t); } .azur .x, .azur .tm { color: var(--azur-b); }
+  .neut { background: var(--neut-f); border-color: var(--neut-a); }
+  .neut .t { color: var(--neut-t); } .neut .x, .neut .tm { color: var(--neut-b); }
+  .adbar.rust { color: var(--rust-t); } .adbar.emer { color: var(--emer-t); }
+
+  /* ============ PALETTE + CARDS ============ */
+  .study { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; max-width: 1320px; margin-top: 44px; }
+  .study h3 { font-weight: 400; color: var(--txt-2); font-size: 13px; margin-bottom: 16px; }
+  .swatches { display: flex; flex-direction: column; gap: 10px; }
+  .sw { display: grid; grid-template-columns: 120px 1fr; gap: 14px; align-items: center; }
+  .sw .chip { height: 44px; border-radius: 8px; border-left: 3px solid; display: flex; align-items: center; padding: 0 12px; font-size: 12px; }
+  .sw .name { color: var(--txt); } .sw .hex { color: var(--txt-3); font-size: 11px; }
+
+  .fcards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .fc { border-radius: 12px; border-left: 3px solid; padding: 14px; min-height: 120px; display: flex; flex-direction: column; }
+  .fc .ic { width: 18px; height: 18px; border-radius: 4px; opacity: .9; margin-bottom: auto; }
+  .fc .ft { font-weight: 500; } .fc .fm { font-size: 11px; margin-top: 2px; }
+
+  .note { color: var(--txt-2); margin-top: 36px; max-width: 760px; }
+  .note b { color: var(--txt); font-weight: 400; }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="lead">Calendar color study · light / dark · five card-color triads (accent / fill / title / body)</div>
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light or dark">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4V20ZM22 12C22 17.5228 17.5228 22 12 22C11.6252 22 11.2549 21.9793 10.8901 21.939C5.88912 21.3862 2 17.148 2 12C2 6.85205 5.88912 2.61382 10.8901 2.06098C11.2549 2.02066 11.6252 2 12 2C17.5228 2 22 6.47715 22 12Z" fill="currentColor"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="cal">
+    <div class="side">
+      <div class="mhead">
+        <div class="m"><b>June</b> <span>2026</span></div>
+        <div class="dot"></div>
+      </div>
+      <table class="mini">
+        <tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr>
+        <tr><td class="dim">31</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
+        <tr><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td></tr>
+        <tr><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td></tr>
+        <tr><td>21</td><td class="today"><span>22</span></td><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td></tr>
+        <tr><td>28</td><td>29</td><td>30</td><td class="dim">1</td><td class="dim">2</td><td class="dim">3</td><td class="dim">4</td></tr>
+      </table>
+
+      <div class="tabs"><span class="on">Today</span><span>This Week</span></div>
+      <div class="todo"><span class="box"></span><span>Lock the M1 calendar scroll behavior</span></div>
+      <div class="todo"><span class="box"></span><span>Wire folder scan → day volumes</span></div>
+      <div class="todo done"><span class="box"></span><span>Pick the calendar direction (continuous scroll)</span></div>
+      <div class="todo done"><span class="box"></span><span>Write the component inventory</span></div>
+      <div class="bar"><i></i></div>
+    </div>
+
+    <div class="tl">
+      <div class="days">
+        <div class="g">IN</div>
+        <div class="d today"><span>Mon 22</span></div>
+        <div class="d">Tue 23</div><div class="d">Wed 24</div><div class="d">Thu 25</div>
+        <div class="d">Fri 26</div><div class="d">Sat 27</div><div class="d">Sun 28</div>
+      </div>
+
+      <div class="allday">
+        <div></div>
+        <div style="grid-column: 2 / 4;"><div class="adbar rust" style="background:var(--rust-f);">Design — yawp</div></div>
+        <div style="grid-column: 5 / 7;"><div class="adbar emer" style="background:var(--emer-f);">Build — day canvas</div></div>
+      </div>
+
+      <div class="body">
+        <div class="gutter">
+          <div class="h">10AM</div><div class="h">11AM</div><div class="h">12PM</div>
+          <div class="h">1PM</div><div class="h">2PM</div><div class="h">3PM</div><div class="h">4PM</div>
+        </div>
+        <div class="cols">
+          <div class="col">
+            <div class="ev rust" style="top:0; height:128px;">
+              <div class="t">Draft M2 spec</div>
+              <div class="x">Folder → FileCards, sidecar persistence, the furniture layer.</div>
+              <div class="tm">10AM—12PM</div>
+            </div>
+            <div class="ev azur" style="top:160px; height:64px;">
+              <div class="t">Standup</div>
+              <div class="tm">12:30—1:30PM</div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="ev neut" style="top:128px; height:256px;">
+              <div class="t">Deep work — day canvas</div>
+              <div class="x">tldraw surface, FileCard shapes, drag-drop reconciliation.</div>
+              <div class="tm">12—4PM</div>
+            </div>
+          </div>
+          <div class="col"></div>
+          <div class="col">
+            <div class="ev emer" style="top:64px; height:192px;">
+              <div class="t">Pair on Finder sync</div>
+              <div class="x">Watcher, delete-to-trash guard, subfolder frames.</div>
+              <div class="tm">11AM—2PM</div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="ev azur" style="top:128px; height:256px;">
+              <div class="t">Indexing pass</div>
+              <div class="x">Describe images, write tags, build the FTS index.</div>
+              <div class="tm">12—4PM</div>
+            </div>
+          </div>
+          <div class="col"></div>
+          <div class="col"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="study">
+    <div>
+      <h3>The card-color system — each hue is a triad</h3>
+      <div class="swatches">
+        <div class="sw">
+          <div class="chip" style="background:var(--rust-f); border-color:var(--rust-a);"><span style="color:var(--rust-t)">Rust</span></div>
+          <div><div class="name">accent · design</div><div class="hex">accent / fill / title / body</div></div>
+        </div>
+        <div class="sw">
+          <div class="chip" style="background:var(--emer-f); border-color:var(--emer-a);"><span style="color:var(--emer-t)">Emerald</span></div>
+          <div><div class="name">build</div><div class="hex">accent / fill / title / body</div></div>
+        </div>
+        <div class="sw">
+          <div class="chip" style="background:var(--azur-f); border-color:var(--azur-a);"><span style="color:var(--azur-t)">Azure</span></div>
+          <div><div class="name">reference</div><div class="hex">accent / fill / title / body</div></div>
+        </div>
+        <div class="sw">
+          <div class="chip" style="background:var(--neut-f); border-color:var(--neut-a);"><span style="color:var(--neut-t)">Neutral</span></div>
+          <div><div class="name">untagged</div><div class="hex">accent / fill / title / body</div></div>
+        </div>
+        <div class="sw">
+          <div class="chip" style="background:var(--viol-f); border-color:var(--viol-a);"><span style="color:var(--viol-t)">Violet</span></div>
+          <div><div class="name">identity · current</div><div class="hex">accent / fill / title / body</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h3>Same triad, applied to yawp FileCards</h3>
+      <div class="fcards">
+        <div class="fc" style="background:var(--rust-f); border-color:var(--rust-a);">
+          <div class="ic" style="background:var(--rust-a)"></div>
+          <div class="ft" style="color:var(--rust-t)">grizzlies-deck.png</div>
+          <div class="fm" style="color:var(--rust-b)">image · tagged design</div>
+        </div>
+        <div class="fc" style="background:var(--azur-f); border-color:var(--azur-a);">
+          <div class="ic" style="background:var(--azur-a)"></div>
+          <div class="ft" style="color:var(--azur-t)">spec.md</div>
+          <div class="fm" style="color:var(--azur-b)">note · tagged build</div>
+        </div>
+        <div class="fc" style="background:var(--emer-f); border-color:var(--emer-a);">
+          <div class="ic" style="background:var(--emer-a)"></div>
+          <div class="ft" style="color:var(--emer-t)">/references</div>
+          <div class="fm" style="color:var(--emer-b)">subfolder · 14 items</div>
+        </div>
+        <div class="fc" style="background:var(--viol-f); border-color:var(--viol-a);">
+          <div class="ic" style="background:var(--viol-a)"></div>
+          <div class="ft" style="color:var(--viol-t)">today's pin</div>
+          <div class="fm" style="color:var(--viol-b)">note · current</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>How it implements:</b> one token set, five hues, each a triad — <b>accent</b> (the left bar), <b>fill</b> (the hue at low opacity over the surface, which mutes it), and <b>title / body</b> (saturated + dimmed). Both themes carry the same role names with different values, so a card just names its hue and the active theme paints it. Hue lives in the day's <b>.yawp.json</b> sidecar. Violet is reserved as the identity / current accent.
+  </div>
+
+<script>
+  document.getElementById('theme-toggle').addEventListener('click', function () {
+    var root = document.documentElement;
+    var dark = root.getAttribute('data-theme') === 'dark';
+    root.setAttribute('data-theme', dark ? 'light' : 'dark');
+    localStorage.setItem('theme', dark ? 'light' : 'dark');
+  });
+</script>
+</body>
+</html>

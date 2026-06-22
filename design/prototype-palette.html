@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yawp — palette translation</title>
+<script>
+  (function () {
+    var saved = localStorage.getItem('theme');
+    var dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+  })();
+</script>
+<style>
+  @font-face {
+    font-family: "Inter";
+    src: url("https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5/files/inter-latin-wght-normal.woff2") format("woff2");
+    font-weight: 100 900; font-style: normal; font-display: swap;
+  }
+
+  /* fixed hue bases (theme-independent — the vivid card color + its deep tonal) */
+  :root {
+    --coral-base:#F2615A; --coral-deep:#7A1518;
+    --orange-base:#E8732E; --orange-deep:#6E1A12;
+    --gold-base:#F5C518;  --gold-deep:#6E4E0A;
+    --green-base:#29B45D; --green-deep:#0B4A1F;
+    --blue-base:#5B8DEF;  --blue-deep:#1B2B86;
+    --purple-base:#B07DF0;--purple-deep:#3C1B79;
+
+    /* ---------- LIGHT chrome + triads ---------- */
+    --bg:#ECECEE; --panel:#FFFFFF; --line:rgba(0,0,0,.07); --line-2:rgba(0,0,0,.12);
+    --txt:#18181B; --txt-2:#6B6B72; --txt-3:#9A9AA0;
+
+    --coral-a:#F2615A;  --coral-f:rgba(242,97,90,.16);  --coral-t:#C81E1E;  --coral-b:rgba(200,30,30,.82);
+    --orange-a:#E8732E; --orange-f:rgba(232,115,46,.17);--orange-t:#C2410C; --orange-b:rgba(194,65,12,.82);
+    --gold-a:#E0B011;   --gold-f:rgba(245,197,24,.22);  --gold-t:#946C08;   --gold-b:rgba(148,108,8,.85);
+    --green-a:#29B45D;  --green-f:rgba(41,180,93,.16);  --green-t:#15803D;  --green-b:rgba(21,128,61,.84);
+    --blue-a:#5B8DEF;   --blue-f:rgba(91,141,239,.16);  --blue-t:#2347C4;   --blue-b:rgba(35,71,196,.84);
+    --purple-a:#B07DF0; --purple-f:rgba(176,125,240,.18);--purple-t:#6D28D9;--purple-b:rgba(109,40,217,.84);
+    --neut-a:#A1A1AA;   --neut-f:rgba(24,24,27,.05);    --neut-t:#3F3F46;   --neut-b:rgba(63,63,70,.72);
+  }
+  /* ---------- DARK chrome + triads ---------- */
+  :root[data-theme="dark"] {
+    --bg:#131315; --panel:#161618; --line:rgba(255,255,255,.06); --line-2:rgba(255,255,255,.10);
+    --txt:#E6E6E8; --txt-2:#8A8A90; --txt-3:#5C5C63;
+
+    --coral-a:#F2615A;  --coral-f:rgba(242,97,90,.15);  --coral-t:#F69089;  --coral-b:rgba(246,144,137,.72);
+    --orange-a:#E8732E; --orange-f:rgba(232,115,46,.15);--orange-t:#F0A86A; --orange-b:rgba(240,168,106,.72);
+    --gold-a:#F5C518;   --gold-f:rgba(245,197,24,.14);  --gold-t:#F2D45E;   --gold-b:rgba(242,212,94,.72);
+    --green-a:#29B45D;  --green-f:rgba(41,180,93,.14);  --green-t:#6FD79A;  --green-b:rgba(111,215,154,.72);
+    --blue-a:#5B8DEF;   --blue-f:rgba(91,141,239,.15);  --blue-t:#9DBAF6;   --blue-b:rgba(157,186,246,.72);
+    --purple-a:#B07DF0; --purple-f:rgba(176,125,240,.16);--purple-t:#C9AAF8;--purple-b:rgba(201,170,248,.72);
+    --neut-a:#D4D4D8;   --neut-f:rgba(255,255,255,.08); --neut-t:#EAEAEC;   --neut-b:rgba(212,212,216,.55);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    font-family: "Inter", sans-serif; font-size: 13px; line-height: 1.5;
+    color: var(--txt); background: var(--bg); -webkit-font-smoothing: antialiased;
+    padding: 44px; max-width: 1180px; margin: 0 auto;
+  }
+  body, .fc, .panel { transition: background-color .22s ease, border-color .22s ease, color .22s ease; }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  h2 { font-weight: 400; font-size: 13px; color: var(--txt); }
+  .lead { color: var(--txt-2); margin-bottom: 30px; }
+  h3 { font-weight: 400; font-size: 13px; color: var(--txt-2); margin: 36px 0 16px; }
+  .theme-toggle { background: none; border: 0; padding: 0; cursor: pointer; color: var(--txt-3); display: inline-flex; transition: color .12s ease; }
+  .theme-toggle:hover { color: var(--txt); }
+
+  /* SOURCE — vivid posters (theme-independent) */
+  .posters { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+  .poster { aspect-ratio: 3/4.2; border-radius: 5px; padding: 14px; position: relative; overflow: hidden; }
+  .poster .pn { font-weight: 600; font-size: 15px; }
+  .poster .pd { font-size: 10.5px; margin-top: 3px; opacity: .9; }
+  .poster .shape { position: absolute; left: 14px; right: 14px; bottom: 0; height: 46%; border-radius: 100px 100px 0 0; }
+
+  /* TRANSLATED — themed FileCards */
+  .cards { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; }
+  .fc { border-left: 3px solid; border-radius: 10px; padding: 13px; min-height: 116px; display: flex; flex-direction: column; }
+  .fc .ic { width: 16px; height: 16px; border-radius: 4px; margin-bottom: auto; }
+  .fc .ft { font-weight: 500; font-size: 12px; } .fc .fm { font-size: 10.5px; margin-top: 2px; }
+
+  .note { color: var(--txt-2); margin-top: 38px; max-width: 760px; }
+  .note b { color: var(--txt); font-weight: 400; }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <h2>yawp — palette translation</h2>
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light or dark">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4V20ZM22 12C22 17.5228 17.5228 22 12 22C11.6252 22 11.2549 21.9793 10.8901 21.939C5.88912 21.3862 2 17.148 2 12C2 6.85205 5.88912 2.61382 10.8901 2.06098C11.2549 2.02066 11.6252 2 12 2C17.5228 2 22 6.47715 22 12Z" fill="currentColor"/></svg>
+    </button>
+  </div>
+  <div class="lead">Six vibrant hues, each captured as a tonal pair (base + deep) and translated into the muted card triad — across light and dark.</div>
+
+  <h3>Source — the six hues, full saturation (base + deep tonal)</h3>
+  <div class="posters">
+    <div class="poster" style="background:var(--coral-base); color:var(--coral-deep);">
+      <div class="pn">Coral</div><div class="pd">red · alerts, design</div>
+      <div class="shape" style="background:var(--coral-deep);"></div>
+    </div>
+    <div class="poster" style="background:var(--orange-base); color:var(--orange-deep);">
+      <div class="pn">Orange</div><div class="pd">warm · in progress</div>
+      <div class="shape" style="background:var(--orange-deep);"></div>
+    </div>
+    <div class="poster" style="background:var(--gold-base); color:var(--gold-deep);">
+      <div class="pn">Gold</div><div class="pd">flagged · pinned</div>
+      <div class="shape" style="background:var(--gold-deep);"></div>
+    </div>
+    <div class="poster" style="background:var(--green-base); color:var(--green-deep);">
+      <div class="pn">Green</div><div class="pd">build · done</div>
+      <div class="shape" style="background:var(--green-deep);"></div>
+    </div>
+    <div class="poster" style="background:var(--blue-base); color:var(--blue-deep);">
+      <div class="pn">Blue</div><div class="pd">reference · notes</div>
+      <div class="shape" style="background:var(--blue-deep);"></div>
+    </div>
+    <div class="poster" style="background:var(--purple-base); color:var(--purple-deep);">
+      <div class="pn">Purple</div><div class="pd">identity · current</div>
+      <div class="shape" style="background:var(--purple-deep);"></div>
+    </div>
+  </div>
+
+  <h3>Translated — the same hues as muted FileCards (adapts with the theme)</h3>
+  <div class="cards">
+    <div class="fc" style="background:var(--coral-f); border-color:var(--coral-a);">
+      <div class="ic" style="background:var(--coral-a)"></div>
+      <div class="ft" style="color:var(--coral-t)">launch.png</div>
+      <div class="fm" style="color:var(--coral-b)">image · coral</div>
+    </div>
+    <div class="fc" style="background:var(--orange-f); border-color:var(--orange-a);">
+      <div class="ic" style="background:var(--orange-a)"></div>
+      <div class="ft" style="color:var(--orange-t)">draft.md</div>
+      <div class="fm" style="color:var(--orange-b)">note · orange</div>
+    </div>
+    <div class="fc" style="background:var(--gold-f); border-color:var(--gold-a);">
+      <div class="ic" style="background:var(--gold-a)"></div>
+      <div class="ft" style="color:var(--gold-t)">pinned.md</div>
+      <div class="fm" style="color:var(--gold-b)">note · gold</div>
+    </div>
+    <div class="fc" style="background:var(--green-f); border-color:var(--green-a);">
+      <div class="ic" style="background:var(--green-a)"></div>
+      <div class="ft" style="color:var(--green-t)">/build</div>
+      <div class="fm" style="color:var(--green-b)">folder · green</div>
+    </div>
+    <div class="fc" style="background:var(--blue-f); border-color:var(--blue-a);">
+      <div class="ic" style="background:var(--blue-a)"></div>
+      <div class="ft" style="color:var(--blue-t)">spec.md</div>
+      <div class="fm" style="color:var(--blue-b)">note · blue</div>
+    </div>
+    <div class="fc" style="background:var(--purple-f); border-color:var(--purple-a);">
+      <div class="ic" style="background:var(--purple-a)"></div>
+      <div class="ft" style="color:var(--purple-t)">today's pin</div>
+      <div class="fm" style="color:var(--purple-b)">note · current</div>
+    </div>
+    <div class="fc" style="background:var(--neut-f); border-color:var(--neut-a);">
+      <div class="ic" style="background:var(--neut-a)"></div>
+      <div class="ft" style="color:var(--neut-t)">untitled.md</div>
+      <div class="fm" style="color:var(--neut-b)">note · untagged</div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>How it translates:</b> each hue is captured as a <b>base</b> (the vivid card color) and a <b>deep</b> tonal (the shape + text on it) — that's the bold poster style up top. The same base then derives a <b>fill</b> (low-opacity tint over the surface), an <b>accent</b> (the bar), and <b>title / body</b> text — the muted FileCard style below. Light and dark each hold their own values under one set of role names, so a card names a hue once and every context paints itself. Toggle to confirm all seven survive the flip.
+  </div>
+
+<script>
+  document.getElementById('theme-toggle').addEventListener('click', function () {
+    var root = document.documentElement;
+    var dark = root.getAttribute('data-theme') === 'dark';
+    root.setAttribute('data-theme', dark ? 'light' : 'dark');
+    localStorage.setItem('theme', dark ? 'light' : 'dark');
+  });
+</script>
+</body>
+</html>

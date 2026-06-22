@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yawp calendar — continuous scroll</title>
+<style>
+  @font-face {
+    font-family: "Inter";
+    src: url("https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5/files/inter-latin-wght-normal.woff2") format("woff2");
+    font-weight: 100 900; font-style: normal; font-display: swap;
+  }
+  :root {
+    --ink: #18181B; --ink-2: #52525B; --line: #E4E4E7; --line-2: #F1F1F3;
+    --violet: #7C3AED; --bg: #FFFFFF; --rail: 92px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    font-family: "Inter", sans-serif; font-size: 14px; font-weight: 400;
+    line-height: 1.6; color: var(--ink); background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 760px; padding: 56px 40px 100px; margin: 0 auto; }
+  .h { margin-bottom: 2px; }
+  .sub { color: var(--ink-2); margin-bottom: 26px; }
+
+  .cal { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+
+  /* sticky weekday header */
+  .head {
+    display: grid; grid-template-columns: var(--rail) repeat(7, 1fr);
+    border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 6; background: var(--bg);
+  }
+  .head .corner { padding: 12px 14px; }
+  .head .dow { padding: 12px 0; text-align: center; color: var(--ink-2); font-size: 12px; letter-spacing: .03em; }
+  .head .dow.we { color: #A1A1AA; }
+
+  .scroll { max-height: 560px; overflow-y: auto; scroll-behavior: smooth; }
+
+  .wk { display: grid; grid-template-columns: var(--rail) repeat(7, 1fr); border-top: 1px solid var(--line-2); }
+  .wk:first-child { border-top: none; }
+  .rail {
+    padding: 10px 14px; color: var(--ink-2); font-size: 12px; position: relative;
+    border-right: 1px solid var(--line-2);
+  }
+  .rail .mo { font-size: 13px; color: var(--ink); }
+  .rail .yr { color: #A1A1AA; }
+
+  .day {
+    position: relative; min-height: 58px; padding: 8px 9px; cursor: pointer;
+    border-left: 1px solid var(--line-2); transition: box-shadow .12s ease;
+  }
+  .day:first-of-type { border-left: none; }
+  .day .n { font-size: 12px; color: var(--ink-2); position: relative; z-index: 2; }
+  .day.out .n { color: #C7C7CC; }            /* spillover days from adjacent month */
+  .day.future { background: #FCFCFD; }
+  .day.future .n { color: #C7C7CC; }
+  .day:hover { box-shadow: inset 0 0 0 2px var(--ink-2); }
+  .day.today { box-shadow: inset 0 0 0 2px var(--violet); }
+  .day.today .n { color: var(--violet); font-weight: 600; }
+
+  /* month start marker */
+  .day.mstart .n::after { content: " " attr(data-mo); color: var(--ink-2); font-size: 11px; }
+
+  /* hover preview bloom */
+  .pop {
+    position: absolute; z-index: 20; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%) translateY(5px);
+    width: 168px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.10); padding: 10px; opacity: 0; visibility: hidden;
+    transition: opacity .14s ease, transform .14s ease; pointer-events: none;
+  }
+  .day:hover .pop { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+  .pop .pt { font-size: 12px; margin-bottom: 8px; }
+  .pop .pt b { font-weight: 600; }
+  .pop .thumbs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .pop .thumbs i { display: block; aspect-ratio: 1; background: var(--line-2); border-radius: 4px; }
+  .pop.empty .thumbs { display: none; }
+  .pop.empty .pt { margin-bottom: 0; color: var(--ink-2); }
+
+  .legend { display: flex; align-items: center; gap: 8px; margin-top: 16px; color: var(--ink-2); font-size: 12px; }
+  .legend .ramp { display: flex; gap: 3px; }
+  .legend .ramp i { width: 16px; height: 12px; border: 1px solid var(--line); border-radius: 2px; }
+  .note { margin-top: 22px; color: var(--ink-2); }
+  .note b { color: var(--ink); font-weight: 400; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="h">yawp — calendar</div>
+  <div class="sub">Continuous scroll · one stream of weeks, cells shaded by volume, anchored on today.</div>
+
+  <div class="cal">
+    <div class="head">
+      <div class="corner"></div>
+      <div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div>
+      <div class="dow">Thu</div><div class="dow">Fri</div><div class="dow we">Sat</div><div class="dow we">Sun</div>
+    </div>
+    <div class="scroll" id="scroll"></div>
+  </div>
+
+  <div class="legend">
+    <span>less</span>
+    <span class="ramp">
+      <i style="background:#fff"></i>
+      <i style="background:rgba(24,24,27,.18)"></i>
+      <i style="background:rgba(24,24,27,.40)"></i>
+      <i style="background:rgba(24,24,27,.65)"></i>
+      <i style="background:rgba(24,24,27,.90)"></i>
+    </span>
+    <span>more</span>
+  </div>
+
+  <div class="note">Hover a day for the preview bloom · click a cell opens that day's canvas · <b>scroll up = the past, down = what's ahead.</b></div>
+</div>
+
+<script>
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MO_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const TODAY = new Date(2026, 5, 22);          // 22 Jun 2026
+  const MAX = 12;
+
+  // deterministic, organic-ish volume; future days empty; weekends lighter
+  function vol(date) {
+    if (date > TODAY) return 0;
+    const dow = date.getDay();
+    const seed = (date.getMonth() + 1) * 41 + date.getDate() * 17;
+    let v = seed % 13;                            // 0..12
+    if (dow === 0 || dow === 6) v = Math.floor(v / 3);   // quiet weekends
+    return v;
+  }
+  function shade(v) {
+    if (!v) return '#fff';
+    return `rgba(24,24,27,${(0.12 + (v / MAX) * 0.80).toFixed(3)})`;
+  }
+  const sameDay = (a, b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+
+  // range: Monday on/before Apr 1 2026 → Sunday on/after Aug 31 2026
+  let start = new Date(2026, 3, 1);
+  start.setDate(start.getDate() - ((start.getDay() + 6) % 7));   // back to Monday
+  const end = new Date(2026, 7, 31);
+
+  const scroll = document.getElementById('scroll');
+  let html = '', cur = new Date(start), todayWeekIdx = -1, wkIdx = 0;
+
+  while (cur <= end) {
+    let railMo = '', cells = '';
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(cur); d.setDate(cur.getDate() + i);
+      const inRange = d.getFullYear() === 2026 && d.getMonth() >= 3 && d.getMonth() <= 7;
+      const v = inRange ? vol(d) : 0;
+      const isToday = sameDay(d, TODAY);
+      const isFuture = d > TODAY;
+      const firstOfMonth = d.getDate() === 1;
+      if (firstOfMonth) railMo = MONTHS[d.getMonth()];
+      if (i === 0 && railMo === '' ) { /* rail label only on month-start weeks */ }
+
+      const cls = ['day'];
+      if (isToday) cls.push('today');
+      else if (isFuture) cls.push('future');
+      const moTag = firstOfMonth ? `data-mo="${MO_SHORT[d.getMonth()]}"` : '';
+      if (firstOfMonth) cls.push('mstart');
+
+      const popInner = v
+        ? `<div class="pt"><b>${v} ${v===1?'item':'items'}</b> · ${MO_SHORT[d.getMonth()]} ${d.getDate()}</div>
+           <div class="thumbs">${'<i></i>'.repeat(Math.min(v,4))}</div>`
+        : `<div class="pt">empty · ${MO_SHORT[d.getMonth()]} ${d.getDate()}</div>`;
+
+      cells += `<div class="${cls.join(' ')}" style="background:${isToday?'#fff':shade(v)}" ${moTag}>
+        <span class="n">${d.getDate()}</span>
+        <div class="pop ${v?'':'empty'}">${popInner}</div>
+      </div>`;
+    }
+    // rail shows month name when this week introduces a new month
+    let railHtml = '';
+    if (railMo) {
+      const showYr = railMo === 'January' || wkIdx === 0;
+      railHtml = `<span class="mo">${railMo}</span>${showYr ? ' <span class="yr">2026</span>' : ''}`;
+    }
+    const todayInWeek = (TODAY >= cur) && (TODAY < new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 7));
+    if (todayInWeek) todayWeekIdx = wkIdx;
+
+    html += `<div class="wk" data-wk="${wkIdx}"><div class="rail">${railHtml}</div>${cells}</div>`;
+    cur.setDate(cur.getDate() + 7); wkIdx++;
+  }
+  scroll.innerHTML = html;
+
+  // anchor on today's week (center it)
+  const tw = scroll.querySelector(`[data-wk="${todayWeekIdx}"]`);
+  if (tw) scroll.scrollTop = tw.offsetTop - scroll.clientHeight / 2 + tw.clientHeight;
+</script>
+</body>
+</html>
