@@ -1,3 +1,5 @@
+import YawpBar from "./YawpBar";
+
 export default function Home() {
   return (
     <main
@@ -16,6 +18,7 @@ export default function Home() {
         className="wordmark-dark h-auto w-[360px] max-w-[80vw]"
       />
       {/* eslint-enable @next/next/no-img-element */}
+      <YawpBar />
       <footer className="absolute bottom-0 py-4 text-[10px] text-muted-foreground">
         by @
         <a
